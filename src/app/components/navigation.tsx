@@ -19,6 +19,12 @@ export default function Navigation() {
       >
         Products
       </Link>
+      <Link href="/users-client" className={pathname === '/about' ? "text-bold mr-4": "mr-4 text-blue-500"}>
+        Users-Client
+      </Link>
+      <Link href="/users-server" className={pathname === '/about' ? "text-bold mr-4": "mr-4 text-blue-500"}>
+        Users-Server
+      </Link>
     </nav>
   )
 }

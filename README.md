@@ -39,3 +39,15 @@ pnpm dev
     import { usePathname } from 'next/navigation'
 
 - Route Hanlder - Can create HTTP verbs (GET, POST, PUT, DELETE) as custom APIs. File name should be route.ts by convention
+  Eg. app/users/route.ts -> GET => http://localhost:3000/users
+
+- Route handler (dynamic routes) - Can create routes for dynamic routes. Create folder name with [id] inside the feature folder and create route call route.ts
+  Eg. app/users/[id]/route.ts -> GET => http://localhost:3000/users/1
+
+- Fetch data (from client side) - Traditional approach. Need to use the 'use client' directive.
+  Eg. app/users-client/page.tsx -> localhost:3000/users-client
+
+- Fetch data (from server side) - SSR way to fetch data from server. There are few rules to apply here. Loading and error has to be manged manually. Put loading.tsx and error.tsx insid the same folder. Names are mush follow the names.
+  Eg. app/users-server/page.tsx -> localhost:3000/users-server
+    app/users-server/loading.tsx
+    app/users-server/error.tsx
