@@ -29,4 +29,13 @@ pnpm dev
   app/(auth)/signup/page.ts -> localhost:3000/signup
   app/(auth)/forgot-password/page.tsx -> localhost:3000/forgot-password
 
-- Layout 
+- Layout - The root layout will take effect for all routes. When page re rendering, only the page contents will be rendered, layout doesn't re render
+
+- Sub Layout - Inside each page folder, can have own layout name with layout.tsx
+  Eg. products/[id]/layout.tsx
+
+- Navigation - Next has next/link with <Link> component. Can use usePathname hook to identify the current path using 'next/navigation'
+  Eg. import Link from 'next/link'
+    import { usePathname } from 'next/navigation'
+
+- Route Hanlder - Can create HTTP verbs (GET, POST, PUT, DELETE) as custom APIs. File name should be route.ts by convention
