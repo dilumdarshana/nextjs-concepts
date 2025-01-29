@@ -1,3 +1,4 @@
+import { auth, currentUser } from '@clerk/nextjs/server';
 import { addUserAction } from '../actions/submitForm';
 
 interface User {
@@ -6,11 +7,16 @@ interface User {
   email: string;
 }
 
-const API = 'https://63fed78dc5c800a7238698ea.mockapi.io/api/v1/users';
+const API = process.env.MOCK_API_USERS as string;
 
 export default async function UsersForm () {
   const response = await fetch(API);
   const users: User[] = await response.json();
+
+  const authObj = await auth();
+  const userObj = await currentUser();
+
+  // console.log('Clerk user', authObj, userObj);
 
   return (
     <div className="py-10">

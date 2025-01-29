@@ -4,6 +4,7 @@
 - NextJS
 - MockAPI (https://mockapi.io/)
 - JSON Placeholder (https://jsonplaceholder.typicode.com/)
+- Clerk
 
 ## Create Next project
 ```bash
@@ -60,4 +61,27 @@ pnpm dev
 - Server Actions - Execute code fragment from server side using 'use server' directive.
   Eg. app/users-form -> localhost:3000/users-form
 
-- Authentication
+- Authentication with Clerk
+  Eg. app/layout.tsx
+      app/components/navigation.tsx
+
+## Setup Clerk
+- Create a new Cleark account
+- Follow bellow steps
+
+```bash
+pnpm add @clerk/nextjs
+
+# follow instructions given by Clerk
+```
+- Protected routes
+  - Add changes to src/middleware.ts
+- Get logged in user infor from server components
+  Eg. app/users-form/page.tsx -> import { auth, currentUser } from '@clerk/nextjs/server';
+- Get looged in user info from client components
+  Eg. app/components/counter.tsx -> import { useAuth, useUser } from '@clerk/nextjs';
+
+## .env varialble access
+- .env.local will be picked when in development mode
+- Both client and server components can access the same environment variables
+- Variable prefix matter here. Prefix NEXT_PUBLIC_ variables only can access from client components. Others can access by both client and server components

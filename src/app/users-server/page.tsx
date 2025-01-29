@@ -7,7 +7,10 @@ interface User {
 export default async function UsersServer () {
   await new Promise(resolve => setTimeout(resolve, 2000));
 
-  const response = await fetch('https://jsonplaceholder.typicode.com/users');
+  // Mock API request
+  const API = process.env.JSON_PLACEHOLDER_USERS as string;
+
+  const response = await fetch(API);
   const users: User[] = await response.json();
 
   return (

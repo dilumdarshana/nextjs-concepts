@@ -1,4 +1,5 @@
 'use client';
+import { SignInButton, UserButton, SignedIn, SignedOut } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -28,6 +29,12 @@ export default function Navigation() {
       <Link href="/users-form" className={pathname === '/about' ? "text-bold mr-4": "mr-4 text-blue-500"}>
         Users-Form
       </Link>
+      <SignedOut>
+        <SignInButton mode="modal" />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+      </SignedIn>
     </nav>
   )
 }
