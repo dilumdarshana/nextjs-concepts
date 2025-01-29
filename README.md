@@ -85,3 +85,6 @@ pnpm add @clerk/nextjs
 - .env.local will be picked when in development mode
 - Both client and server components can access the same environment variables
 - Variable prefix matter here. Prefix NEXT_PUBLIC_ variables only can access from client components. Others can access by both client and server components
+
+## Deployment
+- TBD
