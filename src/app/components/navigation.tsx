@@ -25,6 +25,9 @@ export default function Navigation() {
       <Link href="/users-server" className={pathname === '/about' ? "text-bold mr-4": "mr-4 text-blue-500"}>
         Users-Server
       </Link>
+      <Link href="/users-form" className={pathname === '/about' ? "text-bold mr-4": "mr-4 text-blue-500"}>
+        Users-Form
+      </Link>
     </nav>
   )
 }

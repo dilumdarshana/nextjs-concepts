@@ -1,5 +1,10 @@
 # Next basic concepts (V15)
 
+## Technologies used
+- NextJS
+- MockAPI (https://mockapi.io/)
+- JSON Placeholder (https://jsonplaceholder.typicode.com/)
+
 ## Create Next project
 ```bash
 npx create-next-app@latest
@@ -51,3 +56,8 @@ pnpm dev
   Eg. app/users-server/page.tsx -> localhost:3000/users-server
     app/users-server/loading.tsx
     app/users-server/error.tsx
+
+- Server Actions - Execute code fragment from server side using 'use server' directive.
+  Eg. app/users-form -> localhost:3000/users-form
+
+- Authentication
