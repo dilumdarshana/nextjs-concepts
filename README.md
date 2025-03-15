@@ -42,6 +42,7 @@ pnpm dev
 
 - Sub Layout - Inside each page folder, can have own layout name with layout.tsx
   Eg. products/[id]/layout.tsx
+  Note: must remove the root layout in order to use the sub layouts.
 
 - Navigation - Next has next/link with <Link> component. Can use usePathname hook to identify the current path using 'next/navigation'
   Eg. import Link from 'next/link'
