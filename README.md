@@ -42,7 +42,6 @@ pnpm dev
 
 - Sub Layout - Inside each page folder, can have own layout name with layout.tsx
   Eg. products/[id]/layout.tsx
-  Note: must remove the root layout in order to use the sub layouts.
 
 - Navigation - Next has next/link with <Link> component. Can use usePathname hook to identify the current path using 'next/navigation'
   Eg. import Link from 'next/link'
@@ -57,7 +56,25 @@ pnpm dev
 - Fetch data (from client side) - Traditional approach. Need to use the 'use client' directive.
   Eg. app/users-client/page.tsx -> localhost:3000/users-client
 
-- Fetch data (from server side) - SSR way to fetch data from server. There are few rules to apply here. Loading and error has to be manged manually. Put loading.tsx and error.tsx insid the same folder. Names are mush follow the names.
+- Page metadata
+  Can be set from layout level using bellow template,
+```javascript
+  export const metadata: Metadata = {
+    title: "Task Managemnt System",
+    description: "Next based task manager",
+  };
+```
+  If needed set metadata from page level, then use the following code fragment,
+```javascript
+  export function generateMetadata() {
+    return {
+      title: 'Login',
+      description: 'yoyoyooo',
+    }
+  }
+```
+
+- Fetch data (from server side) - SSR way to fetch data from server. There are few rules to apply here. Loading and error has to be manged manually. Put loading.tsx and error.tsx insid the same folder. Names are must follow the following names.
   Eg. app/users-server/page.tsx -> localhost:3000/users-server
     app/users-server/loading.tsx
     app/users-server/error.tsx
