@@ -46,6 +46,6 @@ test.describe('products UI', () => {
 
   test('missing product shows not found', async ({ page }) => {
     await page.goto('/products/999999');
-    await expect(page.getByText('Not Found').or(page.getByText('404'))).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Product not found' })).toBeVisible();
   });
 });
