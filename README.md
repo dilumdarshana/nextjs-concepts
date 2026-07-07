@@ -1,119 +1,67 @@
-# Next basic concepts (V15)
+# Next.js Concepts
 
-## Technologies used
-- NextJS
-- MockAPI (https://mockapi.io/)
-- JSON Placeholder (https://jsonplaceholder.typicode.com/)
-- Clerk
-- Vitest
-- TestingLibrary (@testing-library)
-- Playwright
+A demo app exploring Next.js 16 App Router concepts — routing, layouts, server components, client components, route handlers, server actions, authentication with Clerk, data fetching, and testing.
 
-## Create Next project
-```bash
-npx create-next-app@latest
-```
+## Tech stack
+
+- Next.js 16 (App Router, Turbopack)
+- React 19
+- TypeScript 6
+- Clerk (authentication)
+- Tailwind CSS v4
+- Vitest + Testing Library
+- pnpm
+
 ## Getting started
 
 ```bash
 pnpm install
-
 pnpm dev
-
 ```
 
-## Main concepts
-- Server Components - By default all are server components
-- Client Components - Use 'use client' directive at the very top of the page
+Copy `.env.example` to `.env.local` and fill in your Clerk keys and API endpoints.
 
-- Static Route - File based routing. Anything inside app folder will follow the route path page name must me page.tsx
-  Eg. app/about/page.tsx -> localhost:3000/about
-  app/blog/post/page.tsx -> localhost:3000/blog/post
+## Concepts covered
 
-- Dynamic Route - Still follow the file path pattern. Use [xxx] as a folder name for dynamic paths
-  Eg. app/products/[id]/page.tsx -> localhost:3000/products/<id OR name>
+| Concept | Route | Pattern |
+|---|---|---|
+| **Static route** | `/about` | `app/about/page.tsx` |
+| **Dynamic route** | `/products/[id]` | `app/products/[id]/page.tsx` |
+| **Route groups** | `/login`, `/signup`, `/forgot-password` | `app/(auth)/...` |
+| **Nested layout** | `/products/[id]` | `app/products/[id]/layout.tsx` |
+| **Route handler** | `GET /users` | `app/users/route.ts` |
+| **Dynamic route handler** | `GET /users/[id]` | `app/users/[id]/route.ts` |
+| **Client data fetch** | `/users-client` | `useEffect` + `fetch` |
+| **Server data fetch** | `/users-server` | async server component |
+| **Server action form** | `/users-form` | `'use server'` |
+| **Clerk auth** | all routes | `proxy.ts`, `layout.tsx` |
 
-- Route Groups - Use the paranthesis () as a group name of the folder. Then put dieferent folder names inside it for different routs within it
-  Eg. app/(auth)/login/page.tsx -> localhost:3000/login
-  app/(auth)/signup/page.ts -> localhost:3000/signup
-  app/(auth)/forgot-password/page.tsx -> localhost:3000/forgot-password
+## Routes
 
-- Layout - The root layout will take effect for all routes. When page re rendering, only the page contents will be rendered, layout doesn't re render
+| Page | Description |
+|---|---|
+| `/` | Home — server and client component demos |
+| `/about` | About page with feature cards |
+| `/products/iphone` | Dynamic product detail |
+| `/users-client` | Client-side data fetching |
+| `/users-server` | Server-side data fetching |
+| `/users-form` | Server action form with Clerk auth |
+| `/login`, `/signup`, `/forgot-password` | Clerk auth pages |
 
-- Sub Layout - Inside each page folder, can have own layout name with layout.tsx
-  Eg. products/[id]/layout.tsx
-
-- Navigation - Next has next/link with <Link> component. Can use usePathname hook to identify the current path using 'next/navigation'
-  Eg. import Link from 'next/link'
-    import { usePathname } from 'next/navigation'
-
-- Route Hanlder - Can create HTTP verbs (GET, POST, PUT, DELETE) as custom APIs. File name should be route.ts by convention
-  Eg. app/users/route.ts -> GET => http://localhost:3000/users
-
-- Route handler (dynamic routes) - Can create routes for dynamic routes. Create folder name with [id] inside the feature folder and create route call route.ts
-  Eg. app/users/[id]/route.ts -> GET => http://localhost:3000/users/1
-
-- Fetch data (from client side) - Traditional approach. Need to use the 'use client' directive.
-  Eg. app/users-client/page.tsx -> localhost:3000/users-client
-
-- Page metadata
-  Can be set from layout level using bellow template,
-```javascript
-  export const metadata: Metadata = {
-    title: "Task Managemnt System",
-    description: "Next based task manager",
-  };
-```
-  If needed set metadata from page level, then use the following code fragment,
-```javascript
-  export function generateMetadata() {
-    return {
-      title: 'Login',
-      description: 'yoyoyooo',
-    }
-  }
-```
-
-- Fetch data (from server side) - SSR way to fetch data from server. There are few rules to apply here. Loading and error has to be manged manually. Put loading.tsx and error.tsx insid the same folder. Names are must follow the following names.
-  Eg. app/users-server/page.tsx -> localhost:3000/users-server
-    app/users-server/loading.tsx
-    app/users-server/error.tsx
-
-- Server Actions - Execute code fragment from server side using 'use server' directive.
-  Eg. app/users-form -> localhost:3000/users-form
-
-- Authentication with Clerk
-  Eg. app/layout.tsx
-      app/components/navigation.tsx
-
-## Setup Clerk
-- Create a new Cleark account
-- Follow bellow steps
+## Commands
 
 ```bash
-pnpm add @clerk/nextjs
-
-# follow instructions given by Clerk
+pnpm dev       # start dev server
+pnpm build     # production build with type check
+pnpm test      # run unit tests
+pnpm lint      # run ESLint
 ```
-- Protected routes
-  - Add changes to src/middleware.ts
-- Get logged in user infor from server components
-  Eg. app/users-form/page.tsx -> import { auth, currentUser } from '@clerk/nextjs/server';
-- Get looged in user info from client components
-  Eg. app/components/counter.tsx -> import { useAuth, useUser } from '@clerk/nextjs';
 
-## .env varialble access
-- .env.local will be picked when in development mode
-- Both client and server components can access the same environment variables
-- Variable prefix matter here. Prefix NEXT_PUBLIC_ variables only can access from client components. Others can access by both client and server components
+## Environment variables
 
-## Unit testing using Vitest
-```bash
-pnpm test
 ```
-  Eg: __tests__
-
-## E2E testing using Playwright
-
-## Deployment
-- TBD
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=xxx
+CLERK_SECRET_KEY=xxx
+MOCK_API_USERS=xxx       # MockAPI endpoint for users-form
+JSON_PLACEHOLDER_USERS=xxx  # JSONPlaceholder endpoint for users-server
+```

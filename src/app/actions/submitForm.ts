@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 
-const API = 'https://63fed78dc5c800a7238698ea.mockapi.io/api/v1/users';
+const API = process.env.MOCK_API_USERS;
 
 export async function addUserAction(formData: FormData) {
   'use server';
