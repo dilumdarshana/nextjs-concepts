@@ -71,9 +71,9 @@ pnpm db:migrate      # apply pending migrations
 ## Environment variables
 
 ```
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=xxx
-CLERK_SECRET_KEY=xxx
-MOCK_API_USERS=xxx       # MockAPI endpoint for users-form
-JSON_PLACEHOLDER_USERS=xxx  # JSONPlaceholder endpoint for users-server
-DATABASE_URL=xxx         # Neon PostgreSQL connection string (for products API)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=xxx    # Clerk dashboard
+CLERK_SECRET_KEY=xxx                     # Clerk dashboard
+JSON_PLACEHOLDER_USERS=https://jsonplaceholder.typicode.com/users  # returns [{ id, name, email }]
+MOCK_API_USERS=https://<id>.mockapi.io/api/v1/users  # accepts { first_name, email }, returns { id, first_name, email, createdAt }
+DATABASE_URL=xxx                         # Neon PostgreSQL connection string (for products API)
 ```
