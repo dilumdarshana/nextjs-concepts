@@ -13,7 +13,7 @@ export async function addUserAction(formData: FormData) {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ name, email }),
+    body: JSON.stringify({ first_name: name, email }),
   });
 
   const newUser = await response.json();

@@ -3,15 +3,12 @@ import { useAuth, useUser } from '@clerk/nextjs';
 
 const Counter = () => {
   const [counter, setCounter] = useState(0);
-  // console.log('Counter Client Component');
+  const { isLoaded, userId } = useAuth();
+  const { isSignedIn } = useUser();
 
-  // clerk auth info
-  const { isLoaded, userId, sessionId, getToken } = useAuth();
-  if (!isLoaded || !userId) return <div className="text-red-500">Counter Component Unauthorised</div>;
-
-  // clerk user info
-  const { isSignedIn, user } = useUser();
-  if (!isSignedIn) return <div className="text-red-500">Counter Component Unauthorised</div>;
+  if (!isLoaded || !userId || !isSignedIn) {
+    return <div className="text-red-500">Counter Component Unauthorised</div>;
+  }
 
   return (
     <>

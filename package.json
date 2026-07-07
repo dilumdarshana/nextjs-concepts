@@ -11,28 +11,29 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.10.3",
-    "next": "15.1.6",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@clerk/nextjs": "^7.5.13",
+    "next": "16.2.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.2.0",
-    "@types/node": "^20",
+    "@tailwindcss/postcss": "^4.3.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^26",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/coverage-v8": "3.0.4",
-    "eslint": "^9",
-    "eslint-config-next": "15.1.6",
-    "jsdom": "^26.0.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "@vitest/coverage-v8": "4.1.10",
+    "eslint": "^10",
+    "eslint-config-next": "16.2.10",
+    "jsdom": "^29.1.1",
     "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.4"
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^4.1.10"
   }
 }

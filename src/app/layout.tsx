@@ -28,16 +28,16 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}
         >
-          <header className="text-center">
+          <header className="bg-white shadow-sm border-b border-gray-200">
             <Navigation />
           </header>
-          <main className="text-center">
+          <main className="max-w-4xl mx-auto px-4 py-4 flex-1 w-full">
             {children}
           </main>
-          <footer className="text-center">
-            <p>@2025 My Application</p>
+          <footer className="text-center py-4 text-gray-500 text-sm border-t border-gray-200">
+            <p>&copy; {new Date().getFullYear()} My Application</p>
           </footer>
         </body>
       </html>
