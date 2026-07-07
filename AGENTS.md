@@ -3,10 +3,12 @@
 ## Dev commands
 
 ```bash
-pnpm dev          # Next.js dev server (suppresses Node warnings)
-pnpm build        # full production build with TypeScript check
-pnpm test         # vitest (single run)
-pnpm lint         # next lint (ESLint with eslint-config-next)
+pnpm dev             # Next.js dev server (suppresses Node warnings)
+pnpm build           # full production build with TypeScript check
+pnpm test            # vitest (single run)
+pnpm test:e2e        # Playwright (chromium, headless)
+pnpm test:e2e:ui     # Playwright UI mode
+pnpm lint            # next lint (ESLint with eslint-config-next)
 pnpm test:coverage
 ```
 
