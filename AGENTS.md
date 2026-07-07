@@ -12,7 +12,7 @@ pnpm lint            # next lint (ESLint with eslint-config-next)
 pnpm test:coverage
 ```
 
-Required order before push: `build` (includes typecheck & lint) → `test`.
+Required order before push: `build` (includes typecheck & lint) → `test` → (optional) `test:e2e`.
 
 **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/) — e.g. `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`.
 
@@ -25,12 +25,16 @@ src/
   actions/                  # Server actions (submitForm)
   app/
     (auth)/login, signup, forgot-password  # Route group, renders at /login etc.
-    products/[id]/          # Dynamic route with nested layout
+    products/               # Product listing (fetches from API)
+    products/[id]/          # Dynamic route with nested layout (fetches from API)
     users/route.ts          # Route handler (GET /users)
     users/[id]/route.ts     # Dynamic route handler, params is Promise<{id: string}>
     users-client/           # Client-side fetch with useEffect
     users-server/           # Server component fetch (uses env var)
     users-form/             # Server action form + Clerk auth
+  db/                       # Drizzle schema + Neon client
+  api/products/             # Route handlers backed by Neon
+e2e/                        # Playwright e2e tests
 ```
 
 ## Key quirks

@@ -10,6 +10,8 @@ A demo app exploring Next.js 16 App Router concepts — routing, layouts, server
 - Clerk (authentication)
 - Tailwind CSS v4
 - Vitest + Testing Library
+- Playwright (e2e)
+- Drizzle ORM + Neon (PostgreSQL)
 - pnpm
 
 ## Getting started
@@ -31,10 +33,13 @@ Copy `.env.example` to `.env.local` and fill in your Clerk keys and API endpoint
 | **Nested layout** | `/products/[id]` | `app/products/[id]/layout.tsx` |
 | **Route handler** | `GET /users` | `app/users/route.ts` |
 | **Dynamic route handler** | `GET /users/[id]` | `app/users/[id]/route.ts` |
+| **Products API (CRUD)** | `GET/POST /api/products` | `app/api/products/route.ts` |
+| **Single product API** | `GET /api/products/[id]` | `app/api/products/[id]/route.ts` |
 | **Client data fetch** | `/users-client` | `useEffect` + `fetch` |
 | **Server data fetch** | `/users-server` | async server component |
 | **Server action form** | `/users-form` | `'use server'` |
 | **Clerk auth** | all routes | `proxy.ts`, `layout.tsx` |
+| **Drizzle ORM + Neon** | products table | `db/schema.ts`, `db/index.ts` |
 
 ## Routes
 
@@ -42,7 +47,8 @@ Copy `.env.example` to `.env.local` and fill in your Clerk keys and API endpoint
 |---|---|
 | `/` | Home — server and client component demos |
 | `/about` | About page with feature cards |
-| `/products/iphone` | Dynamic product detail |
+| `/products` | Product listing (fetches from API) |
+| `/products/[id]` | Dynamic product detail (fetches from API) |
 | `/users-client` | Client-side data fetching |
 | `/users-server` | Server-side data fetching |
 | `/users-form` | Server action form with Clerk auth |
@@ -51,10 +57,15 @@ Copy `.env.example` to `.env.local` and fill in your Clerk keys and API endpoint
 ## Commands
 
 ```bash
-pnpm dev       # start dev server
-pnpm build     # production build with type check
-pnpm test      # run unit tests
-pnpm lint      # run ESLint
+pnpm dev             # start dev server
+pnpm build           # production build with type check + lint
+pnpm test            # run unit tests (Vitest)
+pnpm test:e2e        # run e2e tests (Playwright, headless)
+pnpm test:e2e:ui     # run e2e tests (Playwright UI mode)
+pnpm lint            # run ESLint
+pnpm db:generate     # generate Drizzle migration
+pnpm db:push         # push schema to database
+pnpm db:migrate      # apply pending migrations
 ```
 
 ## Environment variables
@@ -64,4 +75,5 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=xxx
 CLERK_SECRET_KEY=xxx
 MOCK_API_USERS=xxx       # MockAPI endpoint for users-form
 JSON_PLACEHOLDER_USERS=xxx  # JSONPlaceholder endpoint for users-server
+DATABASE_URL=xxx         # Neon PostgreSQL connection string (for products API)
 ```
