@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 const links = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
-  { href: '/products/iphone', label: 'Products', active: (p: string) => p.startsWith('/products') },
+  { href: '/products', label: 'Products', active: (p: string) => p.startsWith('/products') },
   { href: '/users-client', label: 'Users-Client' },
   { href: '/users-server', label: 'Users-Server' },
   { href: '/users-form', label: 'Users-Form' },

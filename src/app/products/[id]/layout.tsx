@@ -7,7 +7,7 @@ export default function ProductLayout({ children }: { children: React.ReactNode 
         <ol className="flex items-center gap-2 text-sm text-gray-400">
           <li><Link href="/" className="hover:text-gray-600 transition-colors">Home</Link></li>
           <li>/</li>
-          <li className="text-gray-600">Products</li>
+          <li><Link href="/products" className="hover:text-gray-600 transition-colors">Products</Link></li>
         </ol>
       </nav>
       {children}
