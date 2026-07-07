@@ -15,30 +15,24 @@ describe('About Page', () => {
   });
 
   it('Should render About page', () => {
-    // render component
     render(<About />);
 
-    // check if the heading name is defined
     expect(screen.getByRole('heading', { name: 'About' })).toBeDefined();
-  
-    // check the button is rendered
-    const button = screen.getByRole('button', { name: 'Go Home' });
+    expect(screen.getByText('App Router')).toBeDefined();
+    expect(screen.getByText('Server Components')).toBeDefined();
+    expect(screen.getByText('Authentication')).toBeDefined();
+
+    const button = screen.getByRole('button', { name: 'Back to Home' });
     expect(button).toBeDefined();
-    // to use this kind of jest dom matchers (toHaveClass), the additional library needs to 
-    // be installed. @testing-library/jest-dom
-    expect(button).toHaveClass('bg-blue-500', 'text-white', 'p-2', 'rounded-md');
   });
 
   it('Should route.push works', async () => {
     render(<About />);
 
-    // get the button
-    const button = screen.getByRole('button', { name: 'Go Home' });
+    const button = screen.getByRole('button', { name: 'Back to Home' });
 
-    // simulate button click
     fireEvent.click(button);
 
-    // assert the button route push
     expect(pushMock).toHaveBeenCalledWith('/');
   });
 });

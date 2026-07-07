@@ -1,5 +1,5 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
-import { addUserAction } from '../actions/submitForm';
+import { addUserAction } from '@/actions/submitForm';
 
 interface User {
   id: number;

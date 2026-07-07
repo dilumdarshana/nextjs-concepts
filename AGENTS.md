@@ -19,6 +19,8 @@ Required order before push: `build` (includes typecheck & lint) → `test`.
 ```
 src/
   proxy.ts                  # Clerk auth middleware (Next.js 16: proxy.ts, NOT middleware.ts)
+  components/               # Shared UI components (navigation, counter, greet)
+  actions/                  # Server actions (submitForm)
   app/
     (auth)/login, signup, forgot-password  # Route group, renders at /login etc.
     products/[id]/          # Dynamic route with nested layout
@@ -27,7 +29,6 @@ src/
     users-client/           # Client-side fetch with useEffect
     users-server/           # Server component fetch (uses env var)
     users-form/             # Server action form + Clerk auth
-    actions/submitForm.ts   # 'use server' action, posts to MockAPI
 ```
 
 ## Key quirks

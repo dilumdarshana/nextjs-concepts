@@ -1,10 +1,9 @@
 'use server';
 import { revalidatePath } from 'next/cache';
 
-const API = process.env.MOCK_API_USERS;
+const API = process.env.MOCK_API_USERS as string;
 
 export async function addUserAction(formData: FormData) {
-  'use server';
   const name = formData.get('name');
   const email = formData.get('email');
 

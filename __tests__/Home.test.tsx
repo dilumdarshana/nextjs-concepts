@@ -18,11 +18,11 @@ vi.mock('@clerk/nextjs', () => ({
   }),
 }));
 
-vi.mock('../src/app/component/counter', () => ({
+vi.mock('@/components/counter', () => ({
   default: () => <div>Counter Component</div>
 }));
 
-vi.mock('../src/app/component/greet', () => ({
+vi.mock('@/components/greet', () => ({
   default: () => <div>Greet Component</div>
 }));
 
@@ -34,10 +34,10 @@ describe('Home Page should render', () => {
       </ClerkProvider>
     );
 
-    // check main page texts rendered
-    expect(screen.getByText('Hellooo')).toBeInTheDocument();
-    // check child pages rendered
-    expect(screen.getByText('Greatings!!!')).toBeInTheDocument();
-    expect(screen.getByText('Counter 0')).toBeInTheDocument();
+    expect(screen.getByText('Next.js Concepts')).toBeInTheDocument();
+    expect(screen.getByText('Server Component')).toBeInTheDocument();
+    expect(screen.getByText('Client Component')).toBeInTheDocument();
+    expect(screen.getByText('Greet Component')).toBeInTheDocument();
+    expect(screen.getByText('Counter Component')).toBeInTheDocument();
   });
 });
