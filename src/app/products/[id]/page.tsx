@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
+import { cacheLife } from 'next/cache';
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
@@ -11,7 +12,10 @@ interface Product {
 }
 
 async function fetchProduct(id: string): Promise<Product | null> {
-  const res = await fetch(`${BASE}/api/products/${id}`, { next: { revalidate: 30 } });
+  'use cache';
+  cacheLife({ stale: 30 });
+
+  const res = await fetch(`${BASE}/api/products/${id}`);
   if (res.status === 404) return null;
   if (!res.ok) return null;
   return res.json();

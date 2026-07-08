@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { cacheLife } from 'next/cache';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -15,9 +16,17 @@ interface Product {
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
+const getProducts = async (): Promise<Product[]> => {
+  'use cache';
+  cacheLife({ stale: 30 });
+
+  const res = await fetch(`${BASE}/api/products`);
+
+  return res.json();
+}
+
 async function ProductList() {
-  const res = await fetch(`${BASE}/api/products`, { next: { revalidate: 30 } });
-  const products: Product[] = await res.json();
+  const products: Product[] = await getProducts();
 
   return (
     <div className="space-y-6">
