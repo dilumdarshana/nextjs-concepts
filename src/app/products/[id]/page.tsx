@@ -13,8 +13,9 @@ interface Product {
 }
 
 // Fetches a single product from the route handler.
-// The route handler's DB call is cached (see src/lib/api.ts), so the `'use cache'`
-// still applies — the cache is shared between pages via the route handler.
+// No `'use cache'` here — the cache lives at the route handler level instead
+// (see src/lib/api.ts:getProductById). This demonstrates that caching can be
+// applied at different layers in the stack.
 async function fetchProduct(id: string): Promise<Product | null> {
   const res = await fetch(`${BASE}/api/products/${id}`);
   if (res.status === 404) return null;

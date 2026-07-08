@@ -3,6 +3,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
+import { cacheLife } from 'next/cache';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -20,9 +21,12 @@ interface Product {
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
 // ProductList calls the route handler via fetch, demonstrating API integration.
-// The route handler itself caches the DB result (see src/lib/api.ts), so the
-// `'use cache'` still applies — just one layer deeper in the call stack.
+// The `'use cache'` directive caches the entire fetch response at the component level,
+// so repeated renders skip the HTTP call entirely for 30 seconds.
 async function ProductList() {
+  'use cache';
+  cacheLife({ stale: 30 });
+
   const res = await fetch(`${BASE}/api/products`);
   const products: Product[] = await res.json();
 
