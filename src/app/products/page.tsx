@@ -20,15 +20,27 @@ interface Product {
 // In development it defaults to localhost:3000; in production set it to your deployed URL.
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
-// ProductList calls the route handler via fetch, demonstrating API integration.
-// The `'use cache'` caches the fetch DATA (not the component — cacheComponents handles that).
-// cacheLife({ stale: 30 }) — serve cached data for 30s, re-fetch in background.
-async function ProductList() {
+// `'use cache'` on a data-fetching function, not the component.
+// cacheComponents: true already handles component caching — this caches only the data,
+// so the HTTP call is skipped for 30s regardless of how many times the component renders.
+async function getProducts(): Promise<Product[]> {
   'use cache';
   cacheLife({ stale: 30 });
 
   const res = await fetch(`${BASE}/api/products`);
-  const products: Product[] = await res.json();
+  if (!res.ok) return [];
+  return res.json();
+}
+
+// ProductList calls the route handler via fetch, demonstrating API integration.
+async function ProductList() {
+  let products: Product[];
+  try {
+    products = await getProducts();
+  } catch {
+    products = [];
+  }
+  if (!Array.isArray(products)) products = [];
 
   return (
     <div className="space-y-6">
