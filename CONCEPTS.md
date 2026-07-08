@@ -1,32 +1,41 @@
 # Next.js Concepts — Pattern Reference
 
-## The three server primitives
+## The three server primitives (+ the proxy layer)
 
-Next.js has three server-side primitives that run in the same process on the server:
+Next.js has three server-side primitives that run in the same process on the server. In front of all of them sits the **proxy** (`src/proxy.ts`), an Edge-level request guard:
 
-| Primitive | Runs in | Purpose | File location |
+```
+    Incoming Request
+           │
+           ▼
+    ┌──────────────┐
+    │   proxy.ts   │  ← Edge Runtime (before the server)
+    │  auth/guard  │
+    └──────┬───────┘
+           │ pass through
+           ▼
+┌──────────────────────────────────────────┐
+│           Next.js Server                 │
+│                                          │
+│  ┌──────────────┐  ┌──────────┐  ┌────┐ │
+│  │   Server     │  │  Server  │  │Route│ │
+│  │  Component   │  │  Action  │  │ Hand│ │
+│  │              │  │          │  │     │ │
+│  │  Renders UI  │  │ Mutates  │  │ JSON│ │
+│  │  (default)   │  │ data     │  │     │ │
+│  └──────┬───────┘  └────┬─────┘  └──┬──┘ │
+│         │               │           │     │
+│         └───────────────┴───────────┘     │
+│              Shared lib/ + db/ + cache    │
+└──────────────────────────────────────────┘
+```
+
+| Layer | Runtime | Purpose | File |
 |---|---|---|---|
-| **Server Component** | Request render | Renders UI from server data | `app/` pages and components (default) |
-| **Server Action** | On call | Mutates data, revalidates cache | `actions/` or inline `'use server'` in components |
-| **Route Handler** | On request | Returns JSON/other responses | `app/api/**/route.ts` |
-
-```
-┌──────────────────────────────────────────────────┐
-│                  Next.js Server                  │
-│                                                  │
-│  ┌──────────────┐  ┌──────────┐  ┌────────────┐ │
-│  │   Server     │  │  Server  │  │   Route    │ │
-│  │  Component   │  │  Action  │  │  Handler   │ │
-│  │              │  │          │  │            │ │
-│  │  Renders UI  │  │ Mutates  │  │ Returns    │ │
-│  │  (default)   │  │ data     │  │ JSON/etc   │ │
-│  └──────┬───────┘  └────┬─────┘  └─────┬──────┘ │
-│         │               │              │        │
-│         └───────────────┴──────────────┘        │
-│                     Shared                       │
-│               lib/ + db/ + cache                 │
-└──────────────────────────────────────────────────┘
-```
+| **Proxy** | Edge | Auth, redirects, headers — runs before every matching request | `src/proxy.ts` |
+| **Server Component** | Server | Renders UI from server data (default) | `app/` pages and components |
+| **Server Action** | Server | Mutates data, revalidates cache | `actions/` or inline `'use server'` |
+| **Route Handler** | Server | Returns JSON/other responses | `app/api/**/route.ts` |
 
 **Server Components** are the default — any component without `'use client'` is a server component. They can `await` data directly (DB calls, `fetch()`) and render JSX. They cannot use hooks, event handlers, or browser APIs.
 
@@ -34,7 +43,7 @@ Next.js has three server-side primitives that run in the same process on the ser
 
 **Route Handlers** (`route.ts`) are traditional API endpoints — they receive a `Request` and return `Response`. Pages typically call them via `fetch()` to demonstrate the HTTP integration pattern.
 
-All three can import shared libraries (`src/lib/`, `src/db/`) and use `'use cache'` — the cache is shared across the entire server process. See each section below for examples.
+All three primitives plus the proxy can import shared libraries (`src/lib/`, `src/db/`). The three server primitives also share `'use cache'`. See each section below for examples.
 
 ---
 
@@ -316,14 +325,78 @@ See: src/app/users-server/page.tsx, src/app/users-form/page.tsx, src/actions/sub
 
 ---
 
-## Proxy file (Next.js 16)
+## Proxy file (`src/proxy.ts`) — edge request layer
 
-Next.js 16 deprecated `middleware.ts`. Use `src/proxy.ts` instead:
+Next.js 16 deprecated `middleware.ts` and renamed it to `proxy.ts`. The concept is the **same** — it runs at the Edge (or the server's closest Edge-like layer) **before every matching request**, acting as a lightweight reverse proxy in front of your application.
+
+```
+        Incoming Request
+               │
+               ▼
+        ┌──────────────┐
+        │   proxy.ts   │  ← Edge Runtime (fast, global, before the server)
+        │  (Clerk auth)│
+        └──────┬───────┘
+               │ passthrough or redirect
+               ▼
+        ┌──────────────────────────────────────────┐
+        │           Next.js Server                 │
+        │  ┌─────────┐ ┌────────┐ ┌───────────┐  │
+        │  │ Server  │ │ Server │ │  Route    │  │
+        │  │ Comp.   │ │ Action │ │  Handler  │  │
+        │  └─────────┘ └────────┘ └───────────┘  │
+        │   (the three server primitives)          │
+        └──────────────────────────────────────────┘
+```
+
+Unlike Express/Node.js middleware, `proxy.ts` does **not** run inside the request-response cycle of the application. It's a separate Edge function that fires first, can short-circuit the request (redirect, rewrite, return 401), or let it pass through to the Next.js server.
+
+### Why the rename?
+
+"Middleware" in the Express sense implies it's part of the app's request pipeline (`req → middleware → route handler`). Next.js middleware was never that — it's a proxy layer that runs **before** the app even receives the request. The rename to `proxy.ts` reflects what it actually does: act as a proxy/guard at the edge of your infrastructure.
+
+### Common uses
+
+- **Authentication** — check cookies, redirect to login, protect routes (Clerk, Auth.js)
+- **Redirects** — legacy URL patterns, country-based routing
+- **Headers** — add security headers, CORS, set `x-robots-tag`
+- **Geolocation** — rewrite to country-specific pages from `x-vercel-ip-country`
+- **Bot detection** — block or redirect known crawlers
+
+### `config.matcher`
+
+The `matcher` tells the proxy which routes to run on. Everything else skips it entirely — critical for performance so the proxy doesn't fire on every static file (images, CSS, JS):
 
 ```ts
-// src/proxy.ts — Clerk auth middleware
-import { clerkMiddleware } from '@clerk/nextjs/server';
-export default clerkMiddleware();
+export const config = {
+  matcher: [
+    // Skip Next.js internals and all static files
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
+};
+```
+
+### Full example — Clerk auth
+
+```ts
+// src/proxy.ts
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+// Routes that require authentication
+const protectedRoutes = createRouteMatcher(['/users-form']);
+
+export default clerkMiddleware(async (auth, req) => {
+  if (protectedRoutes(req)) await auth.protect();
+});
+
+export const config = {
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+  ],
+};
 ```
 
 See: src/proxy.ts

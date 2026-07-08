@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Suspense } from 'react';
-import Navigation from '@/components/navigation';
+import Header from '@/components/header';
 import Footer from '@/components/footer';
 import './globals.css';
 
@@ -36,9 +36,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}
         >
           <Suspense fallback={null}>
-            <header className="bg-white shadow-sm border-b border-gray-200">
-              <Navigation />
-            </header>
+            <Header />
             <main className="max-w-4xl mx-auto px-4 py-4 flex-1 w-full">
               {children}
             </main>

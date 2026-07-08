@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // list of protected routes
 const protectedRoutes = createRouteMatcher(['/users-form']);
@@ -7,6 +8,10 @@ const protectedRoutes = createRouteMatcher(['/users-form']);
 export default clerkMiddleware(async (auth, req) => {
   if (protectedRoutes(req)) await auth.protect();
 });
+
+export function proxy(request: NextRequest) {
+  // return NextResponse.redirect(new URL('/about', request.url));
+}
 
 export const config = {
   matcher: [
