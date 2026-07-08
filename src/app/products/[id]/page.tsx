@@ -37,6 +37,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 // ProductDetail is the actual page content. It's wrapped in <Suspense> below,
 // so it streams in after the static shell (loading skeleton) is painted.
 //
+// DeleteButtonWithRedirect is a client component (see src/components/delete-button.tsx).
+// It lives inside this server component but is only a leaf — it handles its own onClick
+// and hydration. The rest of ProductDetail stays on the server.
+//
 // If the product doesn't exist, notFound() triggers the closest not-found.tsx
 // (which lives in this same directory).
 async function ProductDetail({ id }: { id: string }) {
