@@ -3,7 +3,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { deleteProduct } from '@/actions/deleteProduct';
+import { deleteProduct } from '@/actions/product';
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 

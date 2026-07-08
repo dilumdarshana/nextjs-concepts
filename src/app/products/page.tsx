@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { cacheLife } from 'next/cache';
-import { deleteProduct } from '@/actions/deleteProduct';
+import { deleteProduct } from '@/actions/product';
 
 export const metadata: Metadata = {
   title: 'Products',
