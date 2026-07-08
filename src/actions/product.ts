@@ -10,7 +10,7 @@ import { eq } from 'drizzle-orm';
 
 // Update product
 
-// Delete product
+// Delete product (from <form> — progressive enhancement, works without JS)
 export async function deleteProduct(formData: FormData) {
   const id = Number(formData.get('id'));
   if (Number.isNaN(id)) return;
@@ -18,4 +18,10 @@ export async function deleteProduct(formData: FormData) {
   await db.delete(products).where(eq(products.id, id));
   revalidatePath('/products');
   redirect('/products');
+}
+
+// Delete product (from onClick — JS required, no FormData needed)
+export async function deleteProductById(id: number) {
+  await db.delete(products).where(eq(products.id, id));
+  revalidatePath('/products');
 }

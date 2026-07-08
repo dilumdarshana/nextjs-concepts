@@ -3,7 +3,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { deleteProduct } from '@/actions/product';
+import { DeleteButtonWithRedirect } from '@/components/delete-button';
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
@@ -68,15 +68,9 @@ async function ProductDetail({ id }: { id: string }) {
             <span className="text-sm font-medium text-gray-900">${product.price.toFixed(2)}</span>
           </div>
         </div>
-        <form action={deleteProduct} className="mt-6 pt-4 border-t border-gray-100 text-center">
-          <input type="hidden" name="id" value={product.id} />
-          <button
-            type="submit"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-red-600 border border-red-200 hover:bg-red-50 transition-colors"
-          >
-            Delete Product
-          </button>
-        </form>
+        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+          <DeleteButtonWithRedirect id={product.id} redirectTo="/products" />
+        </div>
       </div>
     </div>
   );

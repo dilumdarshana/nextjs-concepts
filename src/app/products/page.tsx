@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { cacheLife } from 'next/cache';
-import { deleteProduct } from '@/actions/product';
+import { DeleteButton } from '@/components/delete-button';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -67,15 +67,9 @@ async function ProductList() {
                 <p className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
                 <p className="text-sm text-gray-400 mt-2">ID: {product.id}</p>
               </Link>
-              <form action={deleteProduct} className="mt-4 pt-4 border-t border-gray-100">
-                <input type="hidden" name="id" value={product.id} />
-                <button
-                  type="submit"
-                  className="text-sm text-red-500 hover:text-red-700 transition-colors"
-                >
-                  Delete
-                </button>
-              </form>
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <DeleteButton id={product.id} />
+              </div>
             </div>
           ))}
         </div>
