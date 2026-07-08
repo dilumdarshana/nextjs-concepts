@@ -1,5 +1,43 @@
 # Next.js Concepts — Pattern Reference
 
+## The three server primitives
+
+Next.js has three server-side primitives that run in the same process on the server:
+
+| Primitive | Runs in | Purpose | File location |
+|---|---|---|---|
+| **Server Component** | Request render | Renders UI from server data | `app/` pages and components (default) |
+| **Server Action** | On call | Mutates data, revalidates cache | `actions/` or inline `'use server'` in components |
+| **Route Handler** | On request | Returns JSON/other responses | `app/api/**/route.ts` |
+
+```
+┌──────────────────────────────────────────────────┐
+│                  Next.js Server                  │
+│                                                  │
+│  ┌──────────────┐  ┌──────────┐  ┌────────────┐ │
+│  │   Server     │  │  Server  │  │   Route    │ │
+│  │  Component   │  │  Action  │  │  Handler   │ │
+│  │              │  │          │  │            │ │
+│  │  Renders UI  │  │ Mutates  │  │ Returns    │ │
+│  │  (default)   │  │ data     │  │ JSON/etc   │ │
+│  └──────┬───────┘  └────┬─────┘  └─────┬──────┘ │
+│         │               │              │        │
+│         └───────────────┴──────────────┘        │
+│                     Shared                       │
+│               lib/ + db/ + cache                 │
+└──────────────────────────────────────────────────┘
+```
+
+**Server Components** are the default — any component without `'use client'` is a server component. They can `await` data directly (DB calls, `fetch()`) and render JSX. They cannot use hooks, event handlers, or browser APIs.
+
+**Server Actions** (`'use server'`) are functions callable from client components (or forms) that run on the server. They handle mutations, then call `revalidatePath`/`revalidateTag` to refresh cached data.
+
+**Route Handlers** (`route.ts`) are traditional API endpoints — they receive a `Request` and return `Response`. Pages typically call them via `fetch()` to demonstrate the HTTP integration pattern.
+
+All three can import shared libraries (`src/lib/`, `src/db/`) and use `'use cache'` — the cache is shared across the entire server process. See each section below for examples.
+
+---
+
 ## `'use cache'` + `cacheLife()`
 
 Function-level caching (Replaces `next: { revalidate }` on `fetch()`).
@@ -17,7 +55,8 @@ async function getProducts() {
 - Caches the **return value**, not just the HTTP response
 - Use `cacheTag('name')` + `revalidateTag('name')` for on-demand purge
 - Enabled by `experimental: { useCache: true }` in `next.config.ts`
-- Both **pages** and **route handlers** can import the same cached function — they share the cache
+- All three server primitives (see [top](#the-three-server-primitives)) can import the same cached function — they share the cache
+- Put `'use cache'` on a **data function**, not on a component — the component is already cached by `cacheComponents: true`
 - See: src/lib/api.ts, src/app/products/page.tsx
 
 ---
@@ -142,6 +181,8 @@ See: src/app/layout.tsx, src/app/about/layout.tsx
 
 ## Server actions + `revalidatePath`
 
+Server actions are one of the three server primitives (see [top](#the-three-server-primitives)). They let client components call server-side mutation functions.
+
 ```ts
 'use server';
 import { revalidatePath } from 'next/cache';
@@ -177,20 +218,21 @@ See: src/app/products/page.tsx, src/app/products/[id]/page.tsx
 
 ## Shared API lib (`src/lib/api.ts`)
 
-Centralize cached DB functions used by route handlers.
+Route handlers (one of the three server primitives — see [top](#the-three-server-primitives)) share cached DB functions through a common lib.
 
 ```ts
 // src/lib/api.ts — cached DB query
-export async function getProducts() {
+export async function getProductById(id: string) {
   'use cache';
   cacheLife({ stale: 30 });
-  return db.select().from(products);
+  // ... db query ...
 }
 
-// src/app/api/products/route.ts — route handler uses the cached function
-import { getProducts } from '@/lib/api';
-export async function GET() {
-  return Response.json(await getProducts());
+// src/app/api/products/[id]/route.ts — route handler calls the cached function
+import { getProductById } from '@/lib/api';
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return Response.json(await getProductById(id));
 }
 ```
 
@@ -198,12 +240,16 @@ Pages call the route handler via `fetch()` (demonstrating API integration), not 
 
 ```ts
 // src/app/products/page.tsx — page fetches from the API
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
-const res = await fetch(`${BASE}/api/products`);
+async function getProducts() {
+  'use cache';           // component-level cache caches the HTTP call
+  cacheLife({ stale: 30 });
+  const res = await fetch(`${BASE}/api/products`);
+  return res.json();
+}
 ```
 
 - Route handlers cache DB results so frequent API calls don't hit the DB twice
-- Pages demonstrate the standard HTTP fetch pattern
+- Pages demonstrate the standard HTTP fetch pattern with their own cache layer
 - The `'use cache'` still applies, it's just one layer deeper in the call stack
 - See: src/lib/api.ts, src/app/api/products/route.ts
 
