@@ -1,9 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // Route matchers — each one defines a set of paths a rule applies to.
 const protectedRoutes = createRouteMatcher(['/users-form']);
 const legacyRoutes = createRouteMatcher(['/old-page']);
+const apiRoutes = createRouteMatcher(['/api/private(.*)']);
 
 // The default export is the proxy handler — Next.js runs this on every
 // matching request BEFORE the request reaches the server. The function
@@ -16,6 +17,11 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Rule 2 — require authentication for protected routes
   if (protectedRoutes(req)) {
+    await auth.protect();
+  }
+
+  // Rule 3: require API key for private API
+  if (apiRoutes(req)) {
     await auth.protect();
   }
 
