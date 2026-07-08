@@ -1,9 +1,15 @@
 'use server';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@clerk/nextjs/server';
 
 const API = process.env.MOCK_API_USERS as string;
 
 export async function addUserAction(formData: FormData) {
+  if (process.env.NODE_ENV === 'production') {
+    const { userId } = await auth();
+    if (!userId) throw new Error('Unauthorized');
+  }
+
   const name = formData.get('name');
   const email = formData.get('email');
 
