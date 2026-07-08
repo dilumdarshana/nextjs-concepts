@@ -1,9 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { db } from '@/db';
-import { products } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 
 interface Product {
   id: number;
@@ -11,22 +8,22 @@ interface Product {
   price: number;
 }
 
-async function getProduct(id: string): Promise<Product | null> {
-  const numId = Number(id);
-  if (Number.isNaN(numId)) return null;
-  const [product] = await db.select().from(products).where(eq(products.id, numId));
-  return product || null;
+async function fetchProduct(id: string): Promise<Product | null> {
+  const res = await fetch(`http://localhost:3000/api/products/${id}`, { next: { revalidate: 30 } });
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
+  return res.json();
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const product = await getProduct(id);
+  const product = await fetchProduct(id);
   if (!product) return { title: 'Product Not Found' };
   return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
 
 async function ProductDetail({ id }: { id: string }) {
-  const product = await getProduct(id);
+  const product = await fetchProduct(id);
 
   if (!product) {
     notFound();

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { db } from '@/db';
-import { products } from '@/db/schema';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -14,12 +13,9 @@ interface Product {
   price: number;
 }
 
-async function getProducts(): Promise<Product[]> {
-  return db.select().from(products);
-}
-
-export default async function ProductsPage() {
-  const allProducts = await getProducts();
+async function ProductList() {
+  const res = await fetch('http://localhost:3000/api/products', { next: { revalidate: 30 } });
+  const products: Product[] = await res.json();
 
   return (
     <div className="space-y-6">
@@ -28,14 +24,14 @@ export default async function ProductsPage() {
         <p className="text-lg text-gray-500">All available products</p>
       </section>
 
-      {allProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <p className="text-lg">No products yet</p>
           <p className="text-sm mt-1">Add one via the API</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allProducts.map((product) => (
+          {products.map((product) => (
             <Link
               key={product.id}
               href={`/products/${product.id}`}
@@ -49,5 +45,29 @@ export default async function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6 animate-pulse">
+        <section className="text-center py-6">
+          <div className="h-10 w-48 bg-gray-200 rounded-lg mx-auto mb-3" />
+          <div className="h-5 w-64 bg-gray-200 rounded mx-auto" />
+        </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-3">
+              <div className="h-5 w-32 bg-gray-200 rounded" />
+              <div className="h-8 w-24 bg-gray-200 rounded" />
+              <div className="h-4 w-16 bg-gray-200 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    }>
+      <ProductList />
+    </Suspense>
   );
 }
