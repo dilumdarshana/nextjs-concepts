@@ -1,3 +1,5 @@
+// generateMetadata is used here for dynamic SEO — the <title> comes from the actual product name.
+// `params` is a Promise in Next.js 16, so it must be awaited.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
@@ -11,6 +13,8 @@ interface Product {
   price: number;
 }
 
+// Same `'use cache'` + cacheLife pattern as the listing page.
+// Each product detail is cached independently for 30 seconds.
 async function fetchProduct(id: string): Promise<Product | null> {
   'use cache';
   cacheLife({ stale: 30 });
@@ -21,6 +25,9 @@ async function fetchProduct(id: string): Promise<Product | null> {
   return res.json();
 }
 
+// generateMetadata runs during page rendering and sets <title> dynamically.
+// Because it fetches data (via fetchProduct), the title reflects the real product name.
+// If the product doesn't exist, it returns a generic "Not Found" title.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const product = await fetchProduct(id);
@@ -28,6 +35,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
 
+// ProductDetail is the actual page content. It's wrapped in <Suspense> below,
+// so it streams in after the static shell (loading skeleton) is painted.
+//
+// If the product doesn't exist, notFound() triggers the closest not-found.tsx
+// (which lives in this same directory).
 async function ProductDetail({ id }: { id: string }) {
   const product = await fetchProduct(id);
 
@@ -62,6 +74,11 @@ async function ProductDetail({ id }: { id: string }) {
   );
 }
 
+// The page is async because it needs to await `params` (uncached route data).
+// `params` is awaited at the top level, but the actual data-fetching component
+// (ProductDetail) is wrapped in <Suspense>, which satisfies cacheComponents requirements.
+//
+// The fallback skeleton renders instantly; ProductDetail streams in once the API responds.
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (

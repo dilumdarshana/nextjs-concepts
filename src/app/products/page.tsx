@@ -21,7 +21,7 @@ interface Product {
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
 // `'use cache'` is a React 19 directive that caches the return value of this async function.
-// It works like ISR but at the function level rather than the HTTP fetch level.
+// It works like ISR (Incremental Static Regeneration) but at the function level rather than the HTTP fetch level.
 //
 // cacheLife({ stale: 30 }) keeps the cached result fresh for 30 seconds.
 // After that, the cache is "stale" — the next request triggers a background re-fetch

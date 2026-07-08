@@ -11,8 +11,6 @@ interface User {
   email: string;
 }
 
-
-
 async function getUsers(): Promise<User[]> {
   const API = process.env.JSON_PLACEHOLDER_USERS;
 
