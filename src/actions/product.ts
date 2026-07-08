@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { db } from '@/db';
 import { products } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -17,6 +17,7 @@ export async function deleteProduct(formData: FormData) {
 
   await db.delete(products).where(eq(products.id, id));
   revalidatePath('/products');
+  revalidateTag('products', { expire: 3600 });
   redirect('/products');
 }
 
@@ -24,4 +25,5 @@ export async function deleteProduct(formData: FormData) {
 export async function deleteProductById(id: number) {
   await db.delete(products).where(eq(products.id, id));
   revalidatePath('/products');
+  revalidateTag('products', { expire: 3600 });
 }

@@ -3,7 +3,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { cacheLife } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { DeleteButton } from '@/components/delete-button';
 
 export const metadata: Metadata = {
@@ -24,9 +24,13 @@ const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 // `'use cache'` on a data-fetching function, not the component.
 // cacheComponents: true already handles component caching — this caches only the data,
 // so the HTTP call is skipped for 30s regardless of how many times the component renders.
+//
+// cacheTag('products') enables cache invalidation by tag via revalidateTag('products'),
+// which is more granular than revalidatePath('/products') — both work.
 async function getProducts(): Promise<Product[]> {
   'use cache';
   cacheLife({ stale: 30 });
+  cacheTag('products');
 
   const res = await fetch(`${BASE}/api/products`);
   if (!res.ok) return [];
