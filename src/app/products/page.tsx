@@ -21,8 +21,8 @@ interface Product {
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
 // ProductList calls the route handler via fetch, demonstrating API integration.
-// The `'use cache'` directive caches the entire fetch response at the component level,
-// so repeated renders skip the HTTP call entirely for 30 seconds.
+// The `'use cache'` caches the fetch DATA (not the component — cacheComponents handles that).
+// cacheLife({ stale: 30 }) — serve cached data for 30s, re-fetch in background.
 async function ProductList() {
   'use cache';
   cacheLife({ stale: 30 });

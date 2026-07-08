@@ -1,13 +1,12 @@
 import { NextRequest } from 'next/server';
-import { getProducts } from '@/lib/api';
 import { db } from '@/db';
 import { products } from '@/db/schema';
 
-// GET reuses the cached getProducts from the shared lib.
-// The `'use cache'` directive inside that function means the DB result is cached
-// for 30 seconds — the same cache the products page uses.
+// GET uses a direct DB query (no `'use cache'`).
+// The listing page caches the HTTP response itself (component-level `'use cache'`),
+// so there is no double caching — the page skips the HTTP call entirely.
 export async function GET() {
-  const all = await getProducts();
+  const all = await db.select().from(products);
   return Response.json(all);
 }
 

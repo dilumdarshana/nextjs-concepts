@@ -12,13 +12,9 @@ export interface Product {
   price: number;
 }
 
-// `'use cache'` caches the return value of this function in the Next.js data cache.
-// cacheLife({ stale: 30 }) — serve cached data for 30s, then re-fetch in background.
-// Subsequent calls from any route/page reuse the same cache entry.
+// getProducts is a plain DB query (no `'use cache'`).
+// The listing page handles caching itself via component-level `'use cache'`.
 export async function getProducts(): Promise<Product[]> {
-  'use cache';
-  cacheLife({ stale: 30 });
-
   return db.select().from(products);
 }
 
