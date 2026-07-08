@@ -13,7 +13,7 @@ interface User {
   email: string;
 }
 
-export const dynamic = 'force-dynamic';
+
 
 async function getUsers(): Promise<User[]> {
   const API = process.env.MOCK_API_USERS;

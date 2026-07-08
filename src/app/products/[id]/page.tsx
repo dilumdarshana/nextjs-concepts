@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
+import { db } from '@/db';
+import { products } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 interface Product {
   id: number;
@@ -9,12 +12,10 @@ interface Product {
 }
 
 async function getProduct(id: string): Promise<Product | null> {
-  const host = (await headers()).get('host') || 'localhost:3000';
-  const protocol = host.startsWith('localhost') ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/products/${id}`, { cache: 'no-store' });
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
+  const numId = Number(id);
+  if (Number.isNaN(numId)) return null;
+  const [product] = await db.select().from(products).where(eq(products.id, numId));
+  return product || null;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -24,8 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
 
-export default async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+async function ProductDetail({ id }: { id: string }) {
   const product = await getProduct(id);
 
   if (!product) {
@@ -56,5 +56,31 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         </div>
       </div>
     </div>
+  );
+}
+
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return (
+    <Suspense fallback={
+      <div className="space-y-6 animate-pulse">
+        <section className="text-center py-6">
+          <div className="h-10 w-64 bg-gray-200 rounded-lg mx-auto mb-3" />
+          <div className="h-5 w-48 bg-gray-200 rounded mx-auto" />
+        </section>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-lg mx-auto">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex justify-between items-center pb-4 border-b border-gray-100 last:border-b-0 last:pb-0">
+                <div className="h-4 w-20 bg-gray-200 rounded" />
+                <div className="h-4 w-32 bg-gray-200 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    }>
+      <ProductDetail id={id} />
+    </Suspense>
   );
 }

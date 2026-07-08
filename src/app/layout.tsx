@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
+import { Suspense } from 'react';
 import Navigation from '@/components/navigation';
+import Footer from '@/components/footer';
 import './globals.css';
 
 const geistSans = Geist({
@@ -33,15 +35,15 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}
         >
-          <header className="bg-white shadow-sm border-b border-gray-200">
-            <Navigation />
-          </header>
-          <main className="max-w-4xl mx-auto px-4 py-4 flex-1 w-full">
-            {children}
-          </main>
-          <footer className="text-center py-4 text-gray-500 text-sm border-t border-gray-200">
-            <p>&copy; {new Date().getFullYear()} My Application</p>
-          </footer>
+          <Suspense fallback={null}>
+            <header className="bg-white shadow-sm border-b border-gray-200">
+              <Navigation />
+            </header>
+            <main className="max-w-4xl mx-auto px-4 py-4 flex-1 w-full">
+              {children}
+            </main>
+            <Footer />
+          </Suspense>
         </body>
       </html>
     </ClerkProvider>

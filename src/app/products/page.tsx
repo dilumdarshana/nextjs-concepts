@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { headers } from 'next/headers';
+import { db } from '@/db';
+import { products } from '@/db/schema';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -14,15 +15,11 @@ interface Product {
 }
 
 async function getProducts(): Promise<Product[]> {
-  const host = (await headers()).get('host') || 'localhost:3000';
-  const protocol = host.startsWith('localhost') ? 'http' : 'https';
-  const res = await fetch(`${protocol}://${host}/api/products`, { cache: 'no-store' });
-  if (!res.ok) return [];
-  return res.json();
+  return db.select().from(products);
 }
 
 export default async function ProductsPage() {
-  const products = await getProducts();
+  const allProducts = await getProducts();
 
   return (
     <div className="space-y-6">
@@ -31,14 +28,14 @@ export default async function ProductsPage() {
         <p className="text-lg text-gray-500">All available products</p>
       </section>
 
-      {products.length === 0 ? (
+      {allProducts.length === 0 ? (
         <div className="text-center py-12 text-gray-400">
           <p className="text-lg">No products yet</p>
           <p className="text-sm mt-1">Add one via the API</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
+          {allProducts.map((product) => (
             <Link
               key={product.id}
               href={`/products/${product.id}`}

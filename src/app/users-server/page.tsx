@@ -11,18 +11,21 @@ interface User {
   email: string;
 }
 
-export const dynamic = 'force-dynamic';
+
 
 async function getUsers(): Promise<User[]> {
   const API = process.env.JSON_PLACEHOLDER_USERS;
+
   if (!API || API === 'xxx') return [];
 
   const response = await fetch(API, { cache: 'no-store' });
+
   if (!response.ok) return [];
+
   return response.json();
 }
 
-export default async function UsersServer () {
+export default async function UsersServer() {
   const users = await getUsers();
 
   return (
