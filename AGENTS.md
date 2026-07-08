@@ -50,3 +50,4 @@ e2e/                        # Playwright e2e tests
 - **Clerk auth in client components**: Import from `@clerk/nextjs` (`useAuth()`, `useUser()`). All hooks must be called unconditionally before any early return.
 - **Clerk v7**: `SignedIn`/`SignedOut` removed — use `useAuth()` instead.
 - **Stale `.next`**: Delete `.next` if Tailwind or CSS changes aren't reflecting after restart.
+- **CONCEPTS.md**: Always update `CONCEPTS.md` when introducing a new pattern or feature — keeps it as a living reference.
