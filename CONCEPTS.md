@@ -195,7 +195,8 @@ export async function addUserAction(data: FormData) {
 
 - `revalidatePath` purges the cache for that route
 - `revalidateTag('tag')` works with `cacheTag()` for granular control
-- See: src/actions/submitForm.ts
+- Use `redirect()` after mutation to navigate the browser to a new page
+- See: src/actions/submitForm.ts, src/actions/deleteProduct.ts
 
 ---
 
