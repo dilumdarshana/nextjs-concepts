@@ -383,12 +383,26 @@ export const config = {
 ```ts
 // src/proxy.ts
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-// Routes that require authentication
+// Route matchers — each one defines a set of paths a rule applies to
 const protectedRoutes = createRouteMatcher(['/users-form']);
+const legacyRoutes = createRouteMatcher(['/old-page']);
 
+// The default export is the proxy handler — Next.js runs it on every
+// matching request BEFORE the request reaches the server.
 export default clerkMiddleware(async (auth, req) => {
-  if (protectedRoutes(req)) await auth.protect();
+  // Rule 1 — redirect legacy paths
+  if (legacyRoutes(req)) {
+    return NextResponse.redirect(new URL('/about', req.url));
+  }
+
+  // Rule 2 — require authentication for protected routes
+  if (protectedRoutes(req)) {
+    await auth.protect();
+  }
+
+  // No rule matched — request passes through to the app normally.
 });
 
 export const config = {

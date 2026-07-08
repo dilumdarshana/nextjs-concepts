@@ -1,17 +1,26 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-// list of protected routes
+// Route matchers — each one defines a set of paths a rule applies to.
 const protectedRoutes = createRouteMatcher(['/users-form']);
+const legacyRoutes = createRouteMatcher(['/old-page']);
 
-// middleware to protect protected routes with Clerk authentication
+// The default export is the proxy handler — Next.js runs this on every
+// matching request BEFORE the request reaches the server. The function
+// name doesn't matter; only `export default` is what Next.js looks for.
 export default clerkMiddleware(async (auth, req) => {
-  if (protectedRoutes(req)) await auth.protect();
-});
+  // Rule 1 — redirect legacy paths
+  if (legacyRoutes(req)) {
+    return NextResponse.redirect(new URL('/about', req.url));
+  }
 
-export function proxy(request: NextRequest) {
-  // return NextResponse.redirect(new URL('/about', request.url));
-}
+  // Rule 2 — require authentication for protected routes
+  if (protectedRoutes(req)) {
+    await auth.protect();
+  }
+
+  // No rule matched — request passes through to the app normally.
+});
 
 export const config = {
   matcher: [
