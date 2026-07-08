@@ -13,8 +13,6 @@ interface User {
   email: string;
 }
 
-
-
 async function getUsers(): Promise<User[]> {
   const API = process.env.MOCK_API_USERS;
   if (!API || API === 'xxx') return [];

@@ -25,6 +25,20 @@ test.describe('products API', () => {
     const res = await request.post('/api/products', { data: {} });
     expect(res.status()).toBe(400);
   });
+
+  test('DELETE removes a product', async ({ request }) => {
+    const created = await request.post('/api/products', {
+      data: { name: 'Delete Me', price: 10 },
+    });
+    const product = await created.json();
+    expect(product.id).toBeGreaterThan(0);
+
+    const del = await request.delete(`/api/products/${product.id}`);
+    expect(del.ok()).toBeTruthy();
+
+    const get = await request.get(`/api/products/${product.id}`);
+    expect(get.status()).toBe(404);
+  });
 });
 
 test.describe('products UI', () => {
@@ -47,5 +61,20 @@ test.describe('products UI', () => {
   test('missing product shows not found', async ({ page }) => {
     await page.goto('/products/999999');
     await expect(page.getByRole('heading', { name: 'Product not found' })).toBeVisible();
+  });
+
+  test('delete button redirects to listing', async ({ page, request }) => {
+    const created = await request.post('/api/products', {
+      data: { name: 'UI Delete Nav', price: 15 },
+    });
+    const product = await created.json();
+
+    await page.goto(`/products/${product.id}`);
+    await expect(page.getByRole('heading', { name: 'UI Delete Nav' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Delete Product' }).click();
+
+    await expect(page).toHaveURL('/products');
+    await expect(page.getByRole('heading', { name: 'Products' })).toBeVisible();
   });
 });

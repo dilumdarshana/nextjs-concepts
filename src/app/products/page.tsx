@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { cacheLife } from 'next/cache';
+import { deleteProduct } from '@/actions/deleteProduct';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -57,15 +58,25 @@ async function ProductList() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {products.map((product) => (
-            <Link
+            <div
               key={product.id}
-              href={`/products/${product.id}`}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow relative"
             >
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h2>
-              <p className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
-              <p className="text-sm text-gray-400 mt-2">ID: {product.id}</p>
-            </Link>
+              <Link href={`/products/${product.id}`} className="block">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">{product.name}</h2>
+                <p className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-400 mt-2">ID: {product.id}</p>
+              </Link>
+              <form action={deleteProduct} className="mt-4 pt-4 border-t border-gray-100">
+                <input type="hidden" name="id" value={product.id} />
+                <button
+                  type="submit"
+                  className="text-sm text-red-500 hover:text-red-700 transition-colors"
+                >
+                  Delete
+                </button>
+              </form>
+            </div>
           ))}
         </div>
       )}
