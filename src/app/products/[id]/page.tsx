@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
+const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+
 interface Product {
   id: number;
   name: string;
@@ -9,7 +11,7 @@ interface Product {
 }
 
 async function fetchProduct(id: string): Promise<Product | null> {
-  const res = await fetch(`http://localhost:3000/api/products/${id}`, { next: { revalidate: 30 } });
+  const res = await fetch(`${BASE}/api/products/${id}`, { next: { revalidate: 30 } });
   if (res.status === 404) return null;
   if (!res.ok) return null;
   return res.json();

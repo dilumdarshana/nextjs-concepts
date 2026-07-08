@@ -13,8 +13,10 @@ interface Product {
   price: number;
 }
 
+const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+
 async function ProductList() {
-  const res = await fetch('http://localhost:3000/api/products', { next: { revalidate: 30 } });
+  const res = await fetch(`${BASE}/api/products`, { next: { revalidate: 30 } });
   const products: Product[] = await res.json();
 
   return (
