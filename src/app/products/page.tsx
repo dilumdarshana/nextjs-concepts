@@ -1,3 +1,5 @@
+// Metadata is a server-only export — it sets <title> and <meta> tags for this route.
+// See: https://nextjs.org/docs/app/api-reference/functions/generate-metadata
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
@@ -14,8 +16,16 @@ interface Product {
   price: number;
 }
 
+// API_BASE_URL decouples the internal fetch URL from the hardcoded host.
+// In development it defaults to localhost:3000; in production (e.g. Vercel) set it to your deployed URL.
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
+// `'use cache'` is a React 19 directive that caches the return value of this async function.
+// It works like ISR but at the function level rather than the HTTP fetch level.
+//
+// cacheLife({ stale: 30 }) keeps the cached result fresh for 30 seconds.
+// After that, the cache is "stale" — the next request triggers a background re-fetch
+// while still serving the stale data. This avoids blocking the user on a slow API.
 const getProducts = async (): Promise<Product[]> => {
   'use cache';
   cacheLife({ stale: 30 });
@@ -25,6 +35,9 @@ const getProducts = async (): Promise<Product[]> => {
   return res.json();
 }
 
+// ProductList is the dynamic data-fetching piece. It lives inside <Suspense> below,
+// which means Next.js streams the static shell first, then replaces the fallback
+// with the actual content once the fetch completes.
 async function ProductList() {
   const products: Product[] = await getProducts();
 
@@ -59,6 +72,15 @@ async function ProductList() {
   );
 }
 
+// The default export is a non-async function — it returns immediately with the <Suspense> shell.
+// Because it doesn't await any uncached data (fetch, headers, params), it stays static
+// and can be fully prerendered, satisfying cacheComponents: true.
+//
+// <Suspense> with a fallback skeleton:
+//   - The fallback renders instantly (static HTML)
+//   - Once `ProductList` resolves, React streams in the real UI, replacing the skeleton
+//
+// This pattern is called "streaming" or "Partial Prerendering" (PPR).
 export default function ProductsPage() {
   return (
     <Suspense fallback={
