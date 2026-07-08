@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 
@@ -14,6 +15,13 @@ async function getProduct(id: string): Promise<Product | null> {
   if (res.status === 404) return null;
   if (!res.ok) return null;
   return res.json();
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+  if (!product) return { title: 'Product Not Found' };
+  return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {

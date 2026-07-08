@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
+
+export const metadata: Metadata = {
+  title: 'Products',
+  description: 'Browse our product catalog',
+};
 
 interface Product {
   id: number;

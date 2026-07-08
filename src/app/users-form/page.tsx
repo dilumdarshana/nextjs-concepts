@@ -1,5 +1,11 @@
+import type { Metadata } from 'next';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { addUserAction } from '@/actions/submitForm';
+
+export const metadata: Metadata = {
+  title: 'Users (Form)',
+  description: 'Server action form with Clerk authentication',
+};
 
 interface User {
   id: number;

@@ -1,3 +1,10 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Users (Server)',
+  description: 'Server-side data fetching with JSONPlaceholder',
+};
+
 interface User {
   id: number;
   name: string;
