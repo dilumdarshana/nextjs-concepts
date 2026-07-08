@@ -3,43 +3,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { cacheLife } from 'next/cache';
+import { getProducts } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Products',
   description: 'Browse our product catalog',
 };
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-// API_BASE_URL decouples the internal fetch URL from the hardcoded host.
-// In development it defaults to localhost:3000; in production (e.g. Vercel) set it to your deployed URL.
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
-
-// `'use cache'` is a React 19 directive that caches the return value of this async function.
-// It works like ISR (Incremental Static Regeneration) but at the function level rather than the HTTP fetch level.
-//
-// cacheLife({ stale: 30 }) keeps the cached result fresh for 30 seconds.
-// After that, the cache is "stale" — the next request triggers a background re-fetch
-// while still serving the stale data. This avoids blocking the user on a slow API.
-const getProducts = async (): Promise<Product[]> => {
-  'use cache';
-  cacheLife({ stale: 30 });
-
-  const res = await fetch(`${BASE}/api/products`);
-
-  return res.json();
-}
-
 // ProductList is the dynamic data-fetching piece. It lives inside <Suspense> below,
 // which means Next.js streams the static shell first, then replaces the fallback
 // with the actual content once the fetch completes.
 async function ProductList() {
-  const products: Product[] = await getProducts();
+  const products = await getProducts();
 
   return (
     <div className="space-y-6">

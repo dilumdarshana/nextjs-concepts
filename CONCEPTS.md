@@ -17,7 +17,8 @@ async function getProducts() {
 - Caches the **return value**, not just the HTTP response
 - Use `cacheTag('name')` + `revalidateTag('name')` for on-demand purge
 - Enabled by `experimental: { useCache: true }` in `next.config.ts`
-- See: src/app/products/page.tsx, src/app/products/[id]/page.tsx
+- Both **pages** and **route handlers** can import the same cached function — they share the cache
+- See: src/lib/api.ts, src/app/products/page.tsx
 
 ---
 
@@ -157,19 +158,34 @@ export async function addUserAction(data: FormData) {
 
 ---
 
-## `API_BASE_URL` env var for internal fetch
+## Shared API lib (`src/lib/api.ts`)
 
-```env
-API_BASE_URL=http://localhost:3000
-# Set to deployed URL in production (e.g. https://my-app.vercel.app)
+Centralize cached data-fetching functions so pages and route handlers share the same cache.
+
+```ts
+// src/lib/api.ts
+export async function getProducts() {
+  'use cache';
+  cacheLife({ stale: 30 });
+  return db.select().from(products);
+}
 ```
 
 ```ts
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
-const res = await fetch(`${BASE}/api/products`);
+// Page — imports and calls directly (no fetch to self)
+import { getProducts } from '@/lib/api';
+const products = await getProducts();
+
+// Route handler — same import, same cache
+import { getProducts } from '@/lib/api';
+export async function GET() {
+  return Response.json(await getProducts());
+}
 ```
 
-Never hardcode `localhost` in production code. Fallback only covers local dev.
+- Removes `fetch()` roundtrip from server components to route handlers
+- Both share the `'use cache'` entry, so frequent API calls don't hit the DB twice
+- See: src/lib/api.ts
 
 ---
 

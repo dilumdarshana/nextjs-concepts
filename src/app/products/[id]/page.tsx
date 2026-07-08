@@ -3,34 +3,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { cacheLife } from 'next/cache';
-
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-// Same `'use cache'` + cacheLife pattern as the listing page.
-// Each product detail is cached independently for 30 seconds.
-async function fetchProduct(id: string): Promise<Product | null> {
-  'use cache';
-  cacheLife({ stale: 30 });
-
-  const res = await fetch(`${BASE}/api/products/${id}`);
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getProductById } from '@/lib/api';
 
 // generateMetadata runs during page rendering and sets <title> dynamically.
-// Because it fetches data (via fetchProduct), the title reflects the real product name.
+// Because it fetches data (via getProductById), the title reflects the real product name.
 // If the product doesn't exist, it returns a generic "Not Found" title.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const product = await fetchProduct(id);
+  const product = await getProductById(id);
   if (!product) return { title: 'Product Not Found' };
   return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
@@ -41,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 // If the product doesn't exist, notFound() triggers the closest not-found.tsx
 // (which lives in this same directory).
 async function ProductDetail({ id }: { id: string }) {
-  const product = await fetchProduct(id);
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();
@@ -78,7 +58,7 @@ async function ProductDetail({ id }: { id: string }) {
 // `params` is awaited at the top level, but the actual data-fetching component
 // (ProductDetail) is wrapped in <Suspense>, which satisfies cacheComponents requirements.
 //
-// The fallback skeleton renders instantly; ProductDetail streams in once the API responds.
+// The fallback skeleton renders instantly; ProductDetail streams in once the data resolves.
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (

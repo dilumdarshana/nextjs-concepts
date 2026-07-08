@@ -21,19 +21,20 @@ Required order before push: `build` (includes typecheck & lint) → `test` → (
 ```
 src/
   proxy.ts                  # Clerk auth middleware (Next.js 16: proxy.ts, NOT middleware.ts)
-  components/               # Shared UI components (navigation, counter, greet)
+  lib/                      # Shared utilities (api.ts — cached DB functions)
+  components/               # Shared UI components (navigation, counter, greet, footer)
   actions/                  # Server actions (submitForm)
   app/
     (auth)/login, signup, forgot-password  # Route group, renders at /login etc.
-    products/               # Product listing (fetches from API)
-    products/[id]/          # Dynamic route with nested layout (fetches from API)
+    products/               # Product listing (fetches from lib/api)
+    products/[id]/          # Dynamic route with nested layout (fetches from lib/api)
     users/route.ts          # Route handler (GET /users)
     users/[id]/route.ts     # Dynamic route handler, params is Promise<{id: string}>
     users-client/           # Client-side fetch with useEffect
     users-server/           # Server component fetch (uses env var)
     users-form/             # Server action form + Clerk auth
   db/                       # Drizzle schema + Neon client
-  api/products/             # Route handlers backed by Neon
+  api/products/             # Route handlers backed by Neon (also use lib/api)
 e2e/                        # Playwright e2e tests
 ```
 

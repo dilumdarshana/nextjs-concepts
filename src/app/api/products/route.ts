@@ -1,9 +1,13 @@
 import { NextRequest } from 'next/server';
+import { getProducts } from '@/lib/api';
 import { db } from '@/db';
 import { products } from '@/db/schema';
 
+// GET reuses the cached getProducts from the shared lib.
+// The `'use cache'` directive inside that function means the DB result is cached
+// for 30 seconds — the same cache the products page uses.
 export async function GET() {
-  const all = await db.select().from(products);
+  const all = await getProducts();
   return Response.json(all);
 }
 

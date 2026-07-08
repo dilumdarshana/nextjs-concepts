@@ -1,19 +1,14 @@
-import { db } from '@/db';
-import { products } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { getProductById } from '@/lib/api';
 
+// GET reuses the cached getProductById from the shared lib.
+// Each product ID has its own cache entry shared with the product detail page.
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const numId = Number(id);
 
-  if (Number.isNaN(numId)) {
-    return Response.json({ error: 'invalid id' }, { status: 400 });
-  }
-
-  const [product] = await db.select().from(products).where(eq(products.id, numId));
+  const product = await getProductById(id);
 
   if (!product) {
     return Response.json({ error: 'not found' }, { status: 404 });
