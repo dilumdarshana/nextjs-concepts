@@ -53,11 +53,41 @@ async function getProducts() {
 ```
 
 - Caches the **return value**, not just the HTTP response
-- Use `cacheTag('name')` + `revalidateTag('name')` for on-demand purge
 - Enabled by `experimental: { useCache: true }` in `next.config.ts`
 - All three server primitives (see [top](#the-three-server-primitives)) can import the same cached function — they share the cache
 - Put `'use cache'` on a **data function**, not on a component — the component is already cached by `cacheComponents: true`
-- See: src/lib/api.ts, src/app/products/page.tsx
+
+### `cacheTag()` + `revalidateTag()` — on-demand cache invalidation
+
+Add `cacheTag()` inside the cached function, then call `revalidateTag()` from a server action:
+
+```ts
+// pages/products/page.tsx — cached data function
+async function getProducts() {
+  'use cache';
+  cacheLife({ stale: 30 });
+  cacheTag('products');                     // tag the cache entry
+  return db.select().from(products);
+}
+
+// actions/product.ts — server action purges the cache
+import { revalidatePath, revalidateTag } from 'next/cache';
+
+export async function deleteProductById(id: number) {
+  await db.delete(products).where(eq(products.id, id));
+  revalidatePath('/products');              // broad — clears entire route cache
+  revalidateTag('products', { expire: 3600 }); // granular — clears only tagged entries
+}
+```
+
+| Strategy | Scope | Use case |
+|---|---|---|
+| `revalidatePath('/path')` | All cache entries under that route | Simple pages |
+| `revalidateTag('tag')` | Only entries with that specific tag | Shared data across routes |
+
+In Next.js 16, `revalidateTag()` requires a cache profile as the second argument (`{ expire: 3600 }`). `revalidatePath()` is simpler — no profile needed.
+
+See: src/app/products/page.tsx, src/actions/product.ts
 
 ---
 
