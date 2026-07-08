@@ -3,18 +3,28 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getProducts } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Products',
   description: 'Browse our product catalog',
 };
 
-// ProductList is the dynamic data-fetching piece. It lives inside <Suspense> below,
-// which means Next.js streams the static shell first, then replaces the fallback
-// with the actual content once the fetch completes.
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+// API_BASE_URL decouples the internal fetch URL from the hardcoded host.
+// In development it defaults to localhost:3000; in production set it to your deployed URL.
+const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+
+// ProductList calls the route handler via fetch, demonstrating API integration.
+// The route handler itself caches the DB result (see src/lib/api.ts), so the
+// `'use cache'` still applies — just one layer deeper in the call stack.
 async function ProductList() {
-  const products = await getProducts();
+  const res = await fetch(`${BASE}/api/products`);
+  const products: Product[] = await res.json();
 
   return (
     <div className="space-y-6">

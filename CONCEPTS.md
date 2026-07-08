@@ -158,34 +158,54 @@ export async function addUserAction(data: FormData) {
 
 ---
 
-## Shared API lib (`src/lib/api.ts`)
+## `API_BASE_URL` env var for internal fetch
 
-Centralize cached data-fetching functions so pages and route handlers share the same cache.
+```env
+API_BASE_URL=http://localhost:3000
+# Set to deployed URL in production (e.g. https://my-app.vercel.app)
+```
 
 ```ts
-// src/lib/api.ts
+const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+const res = await fetch(`${BASE}/api/products`);
+```
+
+Never hardcode `localhost` in production code. Fallback only covers local dev.
+See: src/app/products/page.tsx, src/app/products/[id]/page.tsx
+
+---
+
+## Shared API lib (`src/lib/api.ts`)
+
+Centralize cached DB functions used by route handlers.
+
+```ts
+// src/lib/api.ts — cached DB query
 export async function getProducts() {
   'use cache';
   cacheLife({ stale: 30 });
   return db.select().from(products);
 }
-```
 
-```ts
-// Page — imports and calls directly (no fetch to self)
-import { getProducts } from '@/lib/api';
-const products = await getProducts();
-
-// Route handler — same import, same cache
+// src/app/api/products/route.ts — route handler uses the cached function
 import { getProducts } from '@/lib/api';
 export async function GET() {
   return Response.json(await getProducts());
 }
 ```
 
-- Removes `fetch()` roundtrip from server components to route handlers
-- Both share the `'use cache'` entry, so frequent API calls don't hit the DB twice
-- See: src/lib/api.ts
+Pages call the route handler via `fetch()` (demonstrating API integration), not the lib directly:
+
+```ts
+// src/app/products/page.tsx — page fetches from the API
+const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+const res = await fetch(`${BASE}/api/products`);
+```
+
+- Route handlers cache DB results so frequent API calls don't hit the DB twice
+- Pages demonstrate the standard HTTP fetch pattern
+- The `'use cache'` still applies, it's just one layer deeper in the call stack
+- See: src/lib/api.ts, src/app/api/products/route.ts
 
 ---
 
