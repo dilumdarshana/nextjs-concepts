@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { DeleteButtonWithRedirect } from '@/components/delete-button';
+import { AddToCartButton } from '@/components/add-to-cart-button';
 
 const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
@@ -72,7 +73,8 @@ async function ProductDetail({ id }: { id: string }) {
             <span className="text-sm font-medium text-gray-900">${product.price.toFixed(2)}</span>
           </div>
         </div>
-        <div className="mt-6 pt-4 border-t border-gray-100 text-center">
+        <div className="mt-6 pt-4 border-t border-gray-100 flex justify-center gap-3">
+          <AddToCartButton id={product.id} name={product.name} price={product.price} />
           <DeleteButtonWithRedirect id={product.id} redirectTo="/products" />
         </div>
       </div>

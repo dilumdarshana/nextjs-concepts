@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 import { DeleteButton } from '@/components/delete-button';
+import { AddToCartButton } from '@/components/add-to-cart-button';
 
 export const metadata: Metadata = {
   title: 'Products',
@@ -71,8 +72,9 @@ async function ProductList() {
                 <p className="text-2xl font-bold text-gray-900">${product.price.toFixed(2)}</p>
                 <p className="text-sm text-gray-400 mt-2">ID: {product.id}</p>
               </Link>
-              <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                 <DeleteButton id={product.id} />
+                <AddToCartButton id={product.id} name={product.name} price={product.price} />
               </div>
             </div>
           ))}

@@ -446,3 +446,70 @@ test('home page renders', async ({ page }) => {
 ```
 
 See: e2e/*.spec.ts, playwright.config.ts
+
+---
+
+## Zustand — Global State Management
+
+[Zustand](https://github.com/pmndrs/zustand) is a lightweight state management library for React. It lives outside the component tree (no Provider wrapper needed) and components subscribe to slices of state via selectors.
+
+### Store pattern
+
+Define a store in `src/stores/` with `create()`:
+
+```ts
+import { create } from 'zustand';
+
+interface CartStore {
+  items: CartItem[];
+  addItem: (product: Product) => void;
+  removeItem: (productId: number) => void;
+}
+
+export const useCartStore = create<CartStore>((set) => ({
+  items: [],
+  addItem: (product) =>
+    set((state) => {
+      // immutable update logic
+    }),
+  removeItem: (productId) =>
+    set((state) => ({
+      items: state.items.filter((item) => item.id !== productId),
+    })),
+}));
+```
+
+### Using the store in client components
+
+Subscribe with a selector to avoid unnecessary re-renders:
+
+```tsx
+import { useCartStore } from '@/stores/cart';
+
+function CartBadge() {
+  const totalItems = useCartStore((s) =>
+    s.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
+  return <span>{totalItems}</span>;
+}
+
+function AddButton({ product }: { product: Product }) {
+  const addItem = useCartStore((s) => s.addItem);
+  return <button onClick={() => addItem(product)}>Add</button>;
+}
+```
+
+Each selector is a subscription — the component only re-renders when the selected value changes.
+
+### Why Zustand over Context
+
+| Feature | Zustand | React Context |
+|---|---|---|
+| Provider wrapper | None | Required at parent |
+| Re-render control | Selector-based | Value-based (entire object) |
+| Bundle size | ~1 KB | 0 (built-in) |
+| Middleware | Persist, Immer, Devtools | N/A |
+
+For simple demo purposes, Context is fine. Zustand shines when multiple unrelated components need to read/write shared state without wrapping the tree in providers.
+
+See: src/stores/cart.ts, src/components/header.tsx, src/app/cart/page.tsx
