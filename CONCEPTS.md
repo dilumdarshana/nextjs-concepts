@@ -1,5 +1,31 @@
 # Next.js Concepts — Pattern Reference
 
+## Table of Contents
+
+1. [The three server primitives (+ the proxy layer)](#the-three-server-primitives--the-proxy-layer)
+2. [`'use cache'` + `cacheLife()`](#use-cache--cachelife)
+3. [`<Suspense>` + Streaming (PPR)](#suspense--streaming-ppr)
+4. [`params` is `Promise` (Next.js 16)](#params-is-promise-nextjs-16)
+5. [`cacheComponents: true`](#cachecomponents-true)
+6. [`'use client'` for non-deterministic values](#use-client-for-non-deterministic-values)
+7. [`generateMetadata` — dynamic SEO](#generatemetadata--dynamic-seo)
+8. [Route-level boundaries](#route-level-boundaries)
+9. [Catch-all `[...slug]` and optional catch-all `[[...slug]]`](#catch-all-slug-and-optional-catch-all-slug)
+10. [Parallel routes `@slot`](#parallel-routes-slot)
+11. [Intercepting routes `(.)` `(..)` `(...)` `(..)(..)`](#intercepting-routes--)
+12. [Root layout metadata template](#root-layout-metadata-template)
+13. [Server actions + `revalidatePath`](#server-actions--revalidatepath)
+14. [`API_BASE_URL` env var for internal fetch](#api_base_url-env-var-for-internal-fetch)
+15. [Shared API lib (`src/lib/api.ts`)](#shared-api-lib-srclibapits)
+16. [Drizzle ORM + Neon setup](#drizzle-orm--neon-setup)
+17. [Env guard pattern](#env-guard-pattern)
+18. [Proxy file (`src/proxy.ts`) — edge request layer](#proxy-file-srcproxysts--edge-request-layer)
+19. [Tailwind v4 quirks](#tailwind-v4-quirks)
+20. [Playwright e2e tests](#playwright-e2e-tests)
+21. [Zustand — Global State Management](#zustand--global-state-management)
+
+---
+
 ## The three server primitives (+ the proxy layer)
 
 Next.js has three server-side primitives that run in the same process on the server. In front of all of them sits the **proxy** (`src/proxy.ts`), an Edge-level request guard:
@@ -201,7 +227,143 @@ Place them in any route directory. They scope to that segment and below.
 
 ---
 
-## Root layout metadata template
+## Catch-all `[...slug]` and optional catch-all `[[...slug]]`
+
+Dynamic segments that capture multiple URL path parts:
+
+| Pattern | Matches | Example |
+|---|---|---|
+| `[id]` | Single segment | `/products/5` |
+| `[...slug]` | One or more segments | `/docs/getting-started`, `/docs/routing/parallel` |
+| `[[...slug]]` | Zero or more segments | `/categories`, `/categories/electronics`, `/categories/electronics/items` |
+
+```tsx
+// app/docs/[...slug]/page.tsx — always needs at least one segment
+export default async function DocPage({ params }: { params: Promise<{ slug: string[] }> }) {
+  const { slug } = await params; // slug is always an array
+  const path = slug.join('/');
+}
+
+// app/categories/[[...slug]]/page.tsx — works with zero segments too
+export default async function CategoriesPage({ params }: { params: Promise<{ slug?: string[] }> }) {
+  const { slug } = await params;
+  if (!slug || slug.length === 0) {
+    return <CategoriesIndex />;  // renders at /categories
+  }
+  return <CategoryDetail slug={slug} />;  // renders at /categories/electronics
+}
+```
+
+- `params.slug` is always `string[]` for catch-all, `string[] | undefined` for optional catch-all
+- Use `notFound()` to handle invalid paths
+- See: `src/app/docs/[...slug]/page.tsx`, `src/app/categories/[[...slug]]/page.tsx`
+
+---
+
+## Parallel routes `@slot`
+
+Render multiple independent views within the same layout using named slots:
+
+```
+app/dashboard/
+├── layout.tsx          # Receives children + sidebar as props
+├── page.tsx            # Main content (default slot)
+├── default.tsx         # Fallback for main slot
+└── @sidebar/
+    ├── page.tsx        # Sidebar content
+    └── default.tsx     # Fallback for sidebar slot
+```
+
+```tsx
+// app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,       // from page.tsx (default slot)
+  sidebar,        // from @sidebar/page.tsx (named slot)
+}: {
+  children: React.ReactNode;
+  sidebar: React.ReactNode;
+}) {
+  return (
+    <div className="flex gap-6">
+      <aside>{sidebar}</aside>
+      <main>{children}</main>
+    </div>
+  );
+}
+```
+
+Key points:
+- Each slot renders **independently** — its own loading, error, page states
+- Slots share the **parent URL** — they don't affect the URL structure
+- `default.tsx` is required for each slot as a fallback when navigating from a sub-route that doesn't have a matching page in the slot
+- `default.tsx` can re-export the main page or render `null` for conditional slots
+- See: `src/app/dashboard/`
+
+---
+
+## Intercepting routes `(.)` `(..)` `(...)` `(..)(..)`
+
+Load a route from within the current layout while preserving the original URL for sharing. The route is "intercepted" when navigated to from a matching parent context.
+
+```
+app/feed/
+├── layout.tsx              # Parallel layout (children + @modal)
+├── page.tsx                # Feed listing
+├── @modal/
+│   ├── default.tsx         # null — no modal by default
+│   └── (.)item/
+│       └── [id]/
+│           └── page.tsx    # Intercepted — shows modal on /feed page
+└── item/
+    └── [id]/
+        └── page.tsx        # Full page — shown when navigated directly
+```
+
+| Prefix | Intercepts from | Example |
+|---|---|---|
+| `(.)` | Same level | `/feed` → `/feed/item/1` renders modal on `/feed` |
+| `(..)` | One level up | `/feed` → `/item/1` (parent route) |
+| `(..)(..)` | Two levels up | `/feed` → `/item/1` (grandparent route) |
+| `(...)` | Root level | Any → `/item/1` from the app root |
+
+### How it works
+
+1. Navigate to `/feed` — only `@modal/default.tsx` renders (null, nothing visible)
+2. Click a link to `/feed/item/1` from within `/feed` — the `@modal/(.)item/[id]` intercepts and renders a modal overlay
+3. Navigate directly to `/feed/item/1` (URL bar, external link) — `item/[id]/page.tsx` renders the full page, no interception
+
+This pattern is ideal for:
+- Photo galleries with lightbox modals
+- Feed/item detail with expandable cards
+- Wizards and multi-step forms
+- Auth pages (login modal on top of current page)
+
+The modal component typically closes on Escape key or backdrop click via `router.back()`.
+
+```tsx
+// app/feed/@modal/(.)item/[id]/page.tsx
+'use client';
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function InterceptedItem({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);  // React.use() unwraps the Promise
+  const router = useRouter();
+
+  return (
+    <div className="fixed inset-0 z-50" onClick={() => router.back()}>
+      <div className="bg-white rounded-2xl p-8" onClick={(e) => e.stopPropagation()}>
+        {/* modal content */}
+        <button onClick={() => router.back()}>Close</button>
+      </div>
+    </div>
+  );
+}
+```
+
+See: `src/app/feed/`, `src/app/feed/@modal/(.)item/[id]/page.tsx`
+
+---
 
 ```ts
 export const metadata: Metadata = {
