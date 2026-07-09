@@ -12,7 +12,7 @@
 8. [Route-level boundaries](#route-level-boundaries)
 9. [Catch-all `[...slug]` and optional catch-all `[[...slug]]`](#catch-all-slug-and-optional-catch-all-slug)
 10. [Parallel routes `@slot`](#parallel-routes-slot)
-11. [Intercepting routes `(.)` `(..)` `(...)` `(..)(..)`](#intercepting-routes--)
+11. [Intercepting routes `(.)` `(..)` `(...)` `(..)(..)`](#intercepting-routes)
 12. [Root layout metadata template](#root-layout-metadata-template)
 13. [Server actions + `revalidatePath`](#server-actions--revalidatepath)
 14. [`API_BASE_URL` env var for internal fetch](#api_base_url-env-var-for-internal-fetch)
