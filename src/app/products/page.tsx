@@ -18,9 +18,12 @@ interface Product {
   price: number;
 }
 
-// API_BASE_URL decouples the internal fetch URL from the hardcoded host.
-// In development it defaults to localhost:3000; in production set it to your deployed URL.
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+// VERCEL_URL is automatically provided by Vercel at runtime (e.g. my-app.vercel.app).
+// API_BASE_URL can be set manually for custom domains.
+// Fallback to localhost for local dev.
+const BASE = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : process.env.API_BASE_URL || 'http://localhost:3000';
 
 // `'use cache'` on a data-fetching function, not the component.
 // cacheComponents: true already handles component caching — this caches only the data,

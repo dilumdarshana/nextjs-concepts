@@ -6,7 +6,9 @@ import { Suspense } from 'react';
 import { DeleteButtonWithRedirect } from '@/components/delete-button';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
+const BASE = process.env.VERCEL_URL
+  ? `https://${process.env.VERCEL_URL}`
+  : process.env.API_BASE_URL || 'http://localhost:3000';
 
 interface Product {
   id: number;
