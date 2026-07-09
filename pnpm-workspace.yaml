@@ -2,6 +2,7 @@ allowBuilds:
   '@clerk/shared': true
   esbuild: true
   sharp: true
+  unrs-resolver: false
 minimumReleaseAgeExclude:
   - '@clerk/backend@3.11.0'
   - '@clerk/nextjs@7.5.13'
@@ -16,3 +17,4 @@ minimumReleaseAgeExclude:
   - '@vitest/spy@4.1.10'
   - '@vitest/utils@4.1.10'
   - vitest@4.1.10
+  - vite@8.1.4
