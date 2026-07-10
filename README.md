@@ -15,6 +15,7 @@ See **[CONCEPTS.md](./CONCEPTS.md)** for a detailed pattern reference with code 
 - Tailwind CSS v4
 - Vitest + Testing Library
 - Playwright (e2e)
+- Sentry (error tracking)
 - Drizzle ORM + Neon (PostgreSQL)
 - pnpm
 
@@ -89,4 +90,5 @@ CLERK_SECRET_KEY=xxx                     # Clerk dashboard
 JSON_PLACEHOLDER_USERS=https://jsonplaceholder.typicode.com/users  # returns [{ id, name, email }]
 MOCK_API_USERS=https://<id>.mockapi.io/api/v1/users  # accepts { first_name, email }, returns { id, first_name, email, createdAt }
 DATABASE_URL=xxx                         # Neon PostgreSQL connection string (for products API)
+SENTRY_DSN=xxx                           # Sentry.io project DSN (error tracking)
 ```

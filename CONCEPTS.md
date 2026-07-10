@@ -22,6 +22,7 @@
 18. [Tailwind v4 quirks](#tailwind-v4-quirks)
 19. [Playwright e2e tests](#playwright-e2e-tests)
 20. [Zustand — Global State Management](#zustand--global-state-management)
+21. [Sentry — Error Tracking](#sentry--error-tracking)
 
 ---
 
@@ -674,3 +675,68 @@ Each selector is a subscription — the component only re-renders when the selec
 For simple demo purposes, Context is fine. Zustand shines when multiple unrelated components need to read/write shared state without wrapping the tree in providers.
 
 See: src/stores/cart.ts, src/components/header.tsx, src/app/cart/page.tsx
+
+---
+
+## Sentry — Error Tracking
+
+[Sentry](https://sentry.io) captures both server-side and client-side errors with full stack traces, including source maps from your production build.
+
+### Setup
+
+```ts
+// sentry.client.config.ts — browser errors + session replays
+import * as Sentry from '@sentry/nextjs';
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 0.1,              // sample 10% of transactions
+  replaysSessionSampleRate: 0.1,       // sample 10% of sessions
+  replaysOnErrorSampleRate: 1,         // always record on error
+});
+```
+
+```ts
+// sentry.server.config.ts — server component / route handler errors
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 0.1,
+});
+```
+
+```ts
+// sentry.edge.config.ts — edge runtime (proxy.ts)
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 0.1,
+});
+```
+
+### next.config.ts integration
+
+Wrap with `withSentryConfig` to enable automatic source map upload and build-time instrumentation:
+
+```ts
+import { withSentryConfig } from '@sentry/nextjs';
+
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  telemetry: false,
+});
+```
+
+### Environment variables
+
+| Var | Required | Purpose |
+|---|---|---|
+| `SENTRY_DSN` | Yes | Public DSN — tells the SDK where to send events |
+| `SENTRY_ORG` | For source maps | Org slug from Sentry settings |
+| `SENTRY_PROJECT` | For source maps | Project slug from Sentry settings |
+| `SENTRY_AUTH_TOKEN` | For source maps | API token with `project:releases` scope |
+
+**Note**: Set these in your Vercel project environment variables, not in `.env.local`. The DSN is public (it's in the client bundle) but the auth token must stay secret.
+
+See: sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts, next.config.ts
