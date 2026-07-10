@@ -66,6 +66,7 @@ Copy `.env.example` to `.env.local` and fill in your Clerk keys and API endpoint
 | `/users-client` | Client-side data fetching (`useEffect`) |
 | `/users-server` | Server-side data fetching |
 | `/users-form` | Server action form with Clerk auth |
+| `/sentry-test` / `server` / `client` / `edge` | Sentry error tracking verification |
 | `/login`, `/signup`, `/forgot-password` | Clerk auth pages |
 
 ## Commands

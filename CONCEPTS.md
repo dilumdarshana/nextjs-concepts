@@ -739,4 +739,16 @@ export default withSentryConfig(nextConfig, {
 
 **Note**: Set these in your Vercel project environment variables, not in `.env.local`. The DSN is public (it's in the client bundle) but the auth token must stay secret.
 
-See: sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts, next.config.ts
+### Testing Sentry locally
+
+Test pages at `/sentry-test` verify each runtime captures errors:
+
+| Route | Runtime | Mechanism |
+|---|---|---|
+| `/sentry-test/server` | Server | Route handler throws — visit to see error in Sentry |
+| `/sentry-test/client` | Client | Button click throws — captured by browser SDK with full context |
+| `/sentry-test/edge` | Edge | `proxy.ts` throws before request reaches the app |
+
+These pages are safe during build (no prerender interference) and only throw at runtime on Vercel.
+
+See: sentry.client.config.ts, sentry.server.config.ts, sentry.edge.config.ts, next.config.ts, src/app/sentry-test/

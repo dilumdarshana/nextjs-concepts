@@ -15,6 +15,7 @@ const links = [
   { href: '/users-client', label: 'Users-Client' },
   { href: '/users-server', label: 'Users-Server' },
   { href: '/users-form', label: 'Users-Form' },
+  { href: '/sentry-test', label: 'Sentry', active: (p: string) => p.startsWith('/sentry-test') },
 ];
 
 export default function Header() {

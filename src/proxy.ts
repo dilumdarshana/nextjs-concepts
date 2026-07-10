@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 const protectedRoutes = createRouteMatcher(['/users-form']);
 const legacyRoutes = createRouteMatcher(['/old-page']);
 const apiRoutes = createRouteMatcher(['/api/private(.*)']);
+const sentryTestEdge = createRouteMatcher(['/sentry-test/edge']);
 
 // The default export is the proxy handler — Next.js runs this on every
 // matching request BEFORE the request reaches the server. The function
@@ -23,6 +24,11 @@ export default clerkMiddleware(async (auth, req) => {
   // Rule 3: require API key for private API
   if (apiRoutes(req)) {
     await auth.protect();
+  }
+
+  // Rule 4 — Sentry edge test (throws to verify edge error tracking)
+  if (sentryTestEdge(req)) {
+    throw new Error('[Sentry Test] Edge error from proxy.ts');
   }
 
   // No rule matched — request passes through to the app normally.
