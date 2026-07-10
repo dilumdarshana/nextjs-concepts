@@ -737,7 +737,7 @@ export default withSentryConfig(nextConfig, {
 | `SENTRY_PROJECT` | For source maps | Project slug from Sentry settings |
 | `SENTRY_AUTH_TOKEN` | For source maps | API token with `project:releases` scope |
 
-**Note**: Set these in your Vercel project environment variables, not in `.env.local`. The DSN is public (it's in the client bundle) but the auth token must stay secret.
+**Note**: For client-side errors, the DSN must be available in the browser bundle. Set it as `NEXT_PUBLIC_SENTRY_DSN` (Next.js only inlines `NEXT_PUBLIC_`-prefixed vars into client code). The SDK also falls back to `SENTRY_DSN` for server/edge runtimes. Set the same value for both in your Vercel environment variables. The DSN is public (it's in the client bundle) but the auth token must stay secret.
 
 ### Testing Sentry locally
 
