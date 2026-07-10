@@ -2,16 +2,23 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import * as Sentry from "@sentry/nextjs";
+import * as Sentry from '@sentry/nextjs';
+
+const dsn = process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN;
+
+if (!dsn) {
+  console.warn('[Sentry] DSN not set — errors will not be reported. Add NEXT_PUBLIC_SENTRY_DSN to .env.local');
+}
 
 Sentry.init({
-  dsn: "https://819ede600f4129d9a1c3f9f9eb0c96f7@o4511709509255168.ingest.de.sentry.io/4511709532454992",
+  dsn,
 
   // Add optional integrations for additional features
   integrations: [Sentry.replayIntegration()],
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1,
+
   // Enable logs to be sent to Sentry
   enableLogs: true,
 
@@ -22,6 +29,9 @@ Sentry.init({
 
   // Define how likely Replay events are sampled when an error occurs.
   replaysOnErrorSampleRate: 1.0,
+
+  // Disable Sentry entirely when no DSN is set (avoids silent failures)
+  enabled: !!dsn,
 
   dataCollection: {
     // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
