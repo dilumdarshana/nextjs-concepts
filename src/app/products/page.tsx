@@ -8,6 +8,23 @@ import { DeleteButton } from '@/components/delete-button';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 import { getProducts } from '@/lib/api';
 
+// Alternative: fetch from the route handler via HTTP.
+// Tradeoff: requires API_BASE_URL or VERCEL_URL, breaks build-time prerendering
+// because the server isn't running during `next build`.
+//
+// const BASE = process.env.VERCEL_URL
+//   ? `https://${process.env.VERCEL_URL}`
+//   : process.env.API_BASE_URL || 'http://localhost:3000';
+//
+// async function getProductsViaApi(): Promise<Product[]> {
+//   'use cache';
+//   cacheLife({ stale: 30 });
+//   cacheTag('products');
+//   const res = await fetch(`${BASE}/api/products`);
+//   if (!res.ok) return [];
+//   return res.json();
+// }
+
 export const metadata: Metadata = {
   title: 'Products',
   description: 'Browse our product catalog',

@@ -7,6 +7,21 @@ import { DeleteButtonWithRedirect } from '@/components/delete-button';
 import { AddToCartButton } from '@/components/add-to-cart-button';
 import { getProductById } from '@/lib/api';
 
+// Alternative: fetch from the route handler via HTTP.
+// Tradeoff: requires API_BASE_URL or VERCEL_URL, breaks build-time prerendering
+// because the server isn't running during `next build`.
+//
+// const BASE = process.env.VERCEL_URL
+//   ? `https://${process.env.VERCEL_URL}`
+//   : process.env.API_BASE_URL || 'http://localhost:3000';
+//
+// async function fetchProductViaApi(id: string): Promise<Product | null> {
+//   const res = await fetch(`${BASE}/api/products/${id}`);
+//   if (res.status === 404) return null;
+//   if (!res.ok) return null;
+//   return res.json();
+// }
+
 // generateMetadata runs during page rendering and sets <title> dynamically.
 // getProductById has its own `'use cache'` layer (see src/lib/api.ts).
 // If the product doesn't exist, it returns a generic "Not Found" title.
