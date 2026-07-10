@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 const protectedRoutes = createRouteMatcher(['/users-form']);
 const legacyRoutes = createRouteMatcher(['/old-page']);
 const apiRoutes = createRouteMatcher(['/api/private(.*)']);
-const sentryTestEdge = createRouteMatcher(['/sentry-test/edge']);
+const sentryTestProxy = createRouteMatcher(['/sentry-test/proxy']);
 
 // The default export is the proxy handler — Next.js runs this on every
 // matching request BEFORE the request reaches the server. The function
@@ -27,10 +27,10 @@ export default clerkMiddleware(async (auth, req) => {
   }
 
   // Rule 4 — Sentry proxy test (throws to test error tracking)
-  // NOTE: Despite the "/sentry-test/edge" URL, this proxy runs on Node.js
-  // in Next.js 16. `cacheComponents: true` also prevents Edge Runtime
-  // entirely. Errors here flow to sentry.server.config.ts, not edge.
-  if (sentryTestEdge(req)) {
+  // NOTE: The proxy runs on Node.js in Next.js 16. `cacheComponents: true`
+  // also prevents Edge Runtime entirely. Errors here flow to
+  // sentry.server.config.ts, not edge.
+  if (sentryTestProxy(req)) {
     throw new Error('[Sentry Test] Proxy error from proxy.ts');
   }
 

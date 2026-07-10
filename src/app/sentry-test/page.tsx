@@ -24,7 +24,7 @@ export default function SentryTestPage() {
         </Link>
 
         <Link
-          href="/sentry-test/edge"
+          href="/sentry-test/proxy"
           className="block bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
         >
           <h2 className="text-lg font-semibold text-gray-900 mb-1">Proxy Error</h2>

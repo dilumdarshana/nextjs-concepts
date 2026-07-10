@@ -761,9 +761,9 @@ Test pages at `/sentry-test` verify each target captures errors:
 |---|---|---|
 | `/sentry-test/server` | Server | Route handler throws — visit to see error in Sentry |
 | `/sentry-test/client` | Client | Button click throws — captured by browser SDK with full context |
-| `/sentry-test/edge` | Proxy (Node.js, **not Edge**) | `proxy.ts` throws before request reaches the app |
+| `/sentry-test/proxy` | Proxy (Node.js) | `proxy.ts` throws before request reaches the app |
 
-> **Dormant edge config:** `sentry.edge.config.ts` exists as a reference pattern but is currently unused. Because `cacheComponents: true` requires Node.js, the Edge Runtime is unavailable — the proxy and all route handlers run on Node.js. The `/sentry-test/edge` test hits the proxy (Node.js), so errors flow to `sentry.server.config.ts`. If you remove `cacheComponents` and `useCache`, you can add `export const runtime = 'edge'` on individual route handlers and `sentry.edge.config.ts` would activate.
+> **Dormant edge config:** `sentry.edge.config.ts` exists as a reference pattern but is currently unused. Because `cacheComponents: true` requires Node.js, the Edge Runtime is unavailable — the proxy and all route handlers run on Node.js. The `/sentry-test/proxy` test hits the proxy (Node.js), so errors flow to `sentry.server.config.ts`. If you remove `cacheComponents` and `useCache`, you can add `export const runtime = 'edge'` on individual route handlers and `sentry.edge.config.ts` would activate.
 
 These pages are safe during build (no prerender interference) and only throw at runtime on Vercel.
 
