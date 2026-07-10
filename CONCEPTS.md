@@ -28,14 +28,14 @@
 
 ## The three server primitives (+ the proxy layer)
 
-Next.js has three server-side primitives that run in the same process on the server. In front of all of them sits the **proxy** (`src/proxy.ts`), an Edge-level request guard:
+Next.js has three server-side primitives that run in the same process on the server. In front of all of them sits the **proxy** (`src/proxy.ts`), which in Next.js 16 defaults to the **Node.js runtime**:
 
 ```
     Incoming Request
            │
            ▼
     ┌──────────────┐
-    │   proxy.ts   │  ← Edge Runtime (before the server)
+    │   proxy.ts   │  ← Node.js (Next.js 16 default)
     │  auth/guard  │
     └──────┬───────┘
            │ pass through
@@ -58,10 +58,12 @@ Next.js has three server-side primitives that run in the same process on the ser
 
 | Layer | Runtime | Purpose | File |
 |---|---|---|---|
-| **Proxy** | Edge | Auth, redirects, headers — runs before every matching request | `src/proxy.ts` |
+| **Proxy** | Node.js (default in Next.js 16) | Auth, redirects, headers — runs before every matching request | `src/proxy.ts` |
 | **Server Component** | Server | Renders UI from server data (default) | `app/` pages and components |
 | **Server Action** | Server | Mutates data, revalidates cache | `actions/` or inline `'use server'` |
 | **Route Handler** | Server | Returns JSON/other responses | `app/api/**/route.ts` |
+
+> **Note:** With `cacheComponents: true` + `experimental.useCache: true`, the app uses React's new caching layer which requires Node.js. This means the Edge Runtime is unavailable — all layers (proxy, route handlers, server components, server actions) run on Node.js. See [`cacheComponents: true`](#cachecomponents-true) for details.
 
 **Server Components** are the default — any component without `'use client'` is a server component. They can `await` data directly (DB calls, `fetch()`) and render JSX. They cannot use hooks, event handlers, or browser APIs.
 
@@ -176,6 +178,16 @@ Enables caching of all server components by default.
 - Dynamic data (`fetch`, `headers`, `params`) must be inside `<Suspense>` boundaries
 - `force-dynamic` is incompatible — remove it
 - See: next.config.ts, AGENTS.md quirks
+
+### Edge Runtime incompatibility
+
+`cacheComponents: true` + `experimental.useCache: true` enable React's new caching primitives (`cacheLife()`, `cacheTag()`, `connection()`). These rely on Node.js APIs and are **incompatible with the Edge Runtime**. This means:
+
+- **Proxy** runs on Node.js (already the Next.js 16 default — no opt-in needed)
+- **Route handlers** cannot use `export const runtime = 'edge'` — it would conflict with the caching layer
+- **No part of the app runs on the Edge Runtime**
+
+The config files (`sentry.edge.config.ts`, edge-referencing code in `proxy.ts`) are kept as **reference patterns** but are effectively dormant. If you remove `cacheComponents` and `useCache`, you can use `runtime = 'edge'` on individual route handlers to opt into Edge Runtime.
 
 ---
 
@@ -487,16 +499,16 @@ See: src/app/users-server/page.tsx, src/app/users-form/page.tsx, src/actions/sub
 
 ---
 
-## Proxy file (`src/proxy.ts`) — edge request layer
+## Proxy file (`src/proxy.ts`) — request guard
 
-Next.js 16 deprecated `middleware.ts` and renamed it to `proxy.ts`. The concept is the **same** — it runs at the Edge (or the server's closest Edge-like layer) **before every matching request**, acting as a lightweight reverse proxy in front of your application.
+Next.js 16 deprecated `middleware.ts` and renamed it to `proxy.ts`. The concept is the **same** — it runs **before every matching request**, acting as a lightweight reverse proxy in front of your application.
 
 ```
         Incoming Request
                │
                ▼
         ┌──────────────┐
-        │   proxy.ts   │  ← Edge Runtime (fast, global, before the server)
+        │   proxy.ts   │  ← Node.js runtime (Next.js 16 default)
         │  (Clerk auth)│
         └──────┬───────┘
                │ passthrough or redirect
@@ -511,11 +523,13 @@ Next.js 16 deprecated `middleware.ts` and renamed it to `proxy.ts`. The concept 
         └──────────────────────────────────────────┘
 ```
 
-Unlike Express/Node.js middleware, `proxy.ts` does **not** run inside the request-response cycle of the application. It's a separate Edge function that fires first, can short-circuit the request (redirect, rewrite, return 401), or let it pass through to the Next.js server.
+Unlike Express/Node.js middleware, `proxy.ts` does **not** run inside the request-response cycle of the application. It's a separate function that fires first, can short-circuit the request (redirect, rewrite, return 401), or let it pass through to the Next.js server.
+
+> **Important:** In Next.js 15.x the proxy (then called `middleware.ts`) ran on the Edge Runtime by default. Starting in Next.js 16, the proxy defaults to **Node.js** and the `runtime` config option is not available for proxy files. Additionally, this project uses `cacheComponents: true` which makes Edge Runtime unavailable entirely — see the [`cacheComponents: true`](#edge-runtime-incompatibility) section.
 
 ### Why the rename?
 
-"Middleware" in the Express sense implies it's part of the app's request pipeline (`req → middleware → route handler`). Next.js middleware was never that — it's a proxy layer that runs **before** the app even receives the request. The rename to `proxy.ts` reflects what it actually does: act as a proxy/guard at the edge of your infrastructure.
+"Middleware" in the Express sense implies it's part of the app's request pipeline (`req → middleware → route handler`). Next.js middleware was never that — it's a proxy layer that runs **before** the app even receives the request. The rename to `proxy.ts` reflects what it actually does: act as a proxy/guard at the edge of your infrastructure (even though it now runs on Node.js).
 
 ### Common uses
 
@@ -741,13 +755,15 @@ export default withSentryConfig(nextConfig, {
 
 ### Testing Sentry locally
 
-Test pages at `/sentry-test` verify each runtime captures errors:
+Test pages at `/sentry-test` verify each target captures errors:
 
-| Route | Runtime | Mechanism |
+| Route | Target | Mechanism |
 |---|---|---|
 | `/sentry-test/server` | Server | Route handler throws — visit to see error in Sentry |
 | `/sentry-test/client` | Client | Button click throws — captured by browser SDK with full context |
-| `/sentry-test/edge` | Edge | `proxy.ts` throws before request reaches the app |
+| `/sentry-test/edge` | Proxy (Node.js, **not Edge**) | `proxy.ts` throws before request reaches the app |
+
+> **Dormant edge config:** `sentry.edge.config.ts` exists as a reference pattern but is currently unused. Because `cacheComponents: true` requires Node.js, the Edge Runtime is unavailable — the proxy and all route handlers run on Node.js. The `/sentry-test/edge` test hits the proxy (Node.js), so errors flow to `sentry.server.config.ts`. If you remove `cacheComponents` and `useCache`, you can add `export const runtime = 'edge'` on individual route handlers and `sentry.edge.config.ts` would activate.
 
 These pages are safe during build (no prerender interference) and only throw at runtime on Vercel.
 

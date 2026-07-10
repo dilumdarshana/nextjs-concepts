@@ -26,9 +26,12 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect();
   }
 
-  // Rule 4 — Sentry edge test (throws to verify edge error tracking)
+  // Rule 4 — Sentry proxy test (throws to test error tracking)
+  // NOTE: Despite the "/sentry-test/edge" URL, this proxy runs on Node.js
+  // in Next.js 16. `cacheComponents: true` also prevents Edge Runtime
+  // entirely. Errors here flow to sentry.server.config.ts, not edge.
   if (sentryTestEdge(req)) {
-    throw new Error('[Sentry Test] Edge error from proxy.ts');
+    throw new Error('[Sentry Test] Proxy error from proxy.ts');
   }
 
   // No rule matched — request passes through to the app normally.

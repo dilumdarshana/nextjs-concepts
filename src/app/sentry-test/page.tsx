@@ -27,8 +27,8 @@ export default function SentryTestPage() {
           href="/sentry-test/edge"
           className="block bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
         >
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">Edge Error</h2>
-          <p className="text-sm text-gray-500">Proxy (<code>proxy.ts</code>) throws — captured by <code>sentry.edge.config.ts</code></p>
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Proxy Error</h2>
+          <p className="text-sm text-gray-500"><code>proxy.ts</code> throws (Node.js) — <code>sentry.edge.config.ts</code> kept as reference only</p>
         </Link>
       </div>
     </div>
