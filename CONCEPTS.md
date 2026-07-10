@@ -15,14 +15,13 @@
 11. [Intercepting routes `(.)` `(..)` `(...)` `(..)(..)`](#intercepting-routes)
 12. [Root layout metadata template](#root-layout-metadata-template)
 13. [Server actions + `revalidatePath`](#server-actions--revalidatepath)
-14. [`API_BASE_URL` env var for internal fetch](#api_base_url-env-var-for-internal-fetch)
-15. [Shared API lib (`src/lib/api.ts`)](#shared-api-lib-srclibapits)
-16. [Drizzle ORM + Neon setup](#drizzle-orm--neon-setup)
-17. [Env guard pattern](#env-guard-pattern)
-18. [Proxy file (`src/proxy.ts`) — edge request layer](#proxy-file-srcproxysts--edge-request-layer)
-19. [Tailwind v4 quirks](#tailwind-v4-quirks)
-20. [Playwright e2e tests](#playwright-e2e-tests)
-21. [Zustand — Global State Management](#zustand--global-state-management)
+14. [Shared API lib (`src/lib/api.ts`)](#shared-api-lib-srclibapits)
+15. [Drizzle ORM + Neon setup](#drizzle-orm--neon-setup)
+16. [Env guard pattern](#env-guard-pattern)
+17. [Proxy file (`src/proxy.ts`) — edge request layer](#proxy-file-srcproxysts--edge-request-layer)
+18. [Tailwind v4 quirks](#tailwind-v4-quirks)
+19. [Playwright e2e tests](#playwright-e2e-tests)
+20. [Zustand — Global State Management](#zustand--global-state-management)
 
 ---
 
@@ -401,59 +400,59 @@ export async function addUserAction(data: FormData) {
 
 ---
 
-## `API_BASE_URL` env var for internal fetch
-
-```env
-API_BASE_URL=http://localhost:3000
-# Set to deployed URL in production (e.g. https://my-app.vercel.app)
-```
-
-```ts
-const BASE = process.env.API_BASE_URL || 'http://localhost:3000';
-const res = await fetch(`${BASE}/api/products`);
-```
-
-Never hardcode `localhost` in production code. Fallback only covers local dev.
-See: src/app/products/page.tsx, src/app/products/[id]/page.tsx
-
----
-
 ## Shared API lib (`src/lib/api.ts`)
 
-Route handlers (one of the three server primitives — see [top](#the-three-server-primitives)) share cached DB functions through a common lib.
+Route handlers and pages share cached DB functions through a common lib.
 
 ```ts
-// src/lib/api.ts — cached DB query
+// src/lib/api.ts
 export async function getProductById(id: string) {
   'use cache';
   cacheLife({ stale: 30 });
-  // ... db query ...
+  return db.select().from(products).where(eq(products.id, numId)).then(r => r[0] || null);
 }
+```
 
-// src/app/api/products/[id]/route.ts — route handler calls the cached function
+Both route handlers and pages import from this lib — no HTTP round-trip needed:
+
+```ts
+// src/app/api/products/[id]/route.ts — route handler (public API)
 import { getProductById } from '@/lib/api';
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return Response.json(await getProductById(id));
 }
-```
 
-Pages call the route handler via `fetch()` (demonstrating API integration), not the lib directly:
-
-```ts
-// src/app/products/page.tsx — page fetches from the API
-async function getProducts() {
-  'use cache';           // component-level cache caches the HTTP call
-  cacheLife({ stale: 30 });
-  const res = await fetch(`${BASE}/api/products`);
-  return res.json();
+// src/app/products/[id]/page.tsx — page uses the same function directly
+import { getProductById } from '@/lib/api';
+async function ProductDetail({ id }: { id: string }) {
+  const product = await getProductById(id);
 }
 ```
 
-- Route handlers cache DB results so frequent API calls don't hit the DB twice
-- Pages demonstrate the standard HTTP fetch pattern with their own cache layer
-- The `'use cache'` still applies, it's just one layer deeper in the call stack
-- See: src/lib/api.ts, src/app/api/products/route.ts
+Pages wrap the lib call with their own cache layer (separate from the route handler's cache):
+
+```ts
+// src/app/products/page.tsx — page-level cache
+import { getProducts } from '@/lib/api';
+
+async function getCachedProducts() {
+  'use cache';
+  cacheLife({ stale: 30 });
+  cacheTag('products');
+  return getProducts();
+}
+```
+
+| Layer | Cache | Consumer |
+|---|---|---|
+| `src/lib/api.ts` | `'use cache'` per function | Internal pages & route handlers |
+| Page wrapper | Separate `'use cache'` + `cacheTag` | Page rendering only |
+| Route handler | Calls lib function directly | External API consumers |
+
+Route handlers exist for **external** consumers (mobile apps, third parties). Internal pages call the lib directly — this avoids the chicken-and-egg problem of a server fetching itself via HTTP, works during build-time prerendering, and doesn't require `API_BASE_URL` or `VERCEL_URL`.
+
+See: src/lib/api.ts, src/app/api/products/route.ts, src/app/products/page.tsx
 
 ---
 

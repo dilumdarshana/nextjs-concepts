@@ -6,46 +6,29 @@ import { Suspense } from 'react';
 import { cacheLife, cacheTag } from 'next/cache';
 import { DeleteButton } from '@/components/delete-button';
 import { AddToCartButton } from '@/components/add-to-cart-button';
+import { getProducts } from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Products',
   description: 'Browse our product catalog',
 };
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-// VERCEL_URL is automatically provided by Vercel at runtime (e.g. my-app.vercel.app).
-// API_BASE_URL can be set manually for custom domains.
-// Fallback to localhost for local dev.
-const BASE = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : process.env.API_BASE_URL || 'http://localhost:3000';
-
-// `'use cache'` on a data-fetching function, not the component.
-// cacheComponents: true already handles component caching — this caches only the data,
-// so the HTTP call is skipped for 30s regardless of how many times the component renders.
-//
-// cacheTag('products') enables cache invalidation by tag via revalidateTag('products'),
-// which is more granular than revalidatePath('/products') — both work.
-async function getProducts(): Promise<Product[]> {
+// getCachedProducts wraps the shared lib function with caching.
+// The cache is independent from the route handler — pages and API consumers
+// each have their own cache entries for the same underlying data.
+async function getCachedProducts() {
   'use cache';
   cacheLife({ stale: 30 });
   cacheTag('products');
-
-  const res = await fetch(`${BASE}/api/products`);
-  if (!res.ok) return [];
-  return res.json();
+  return getProducts();
 }
 
-// ProductList calls the route handler via fetch, demonstrating API integration.
+// ProductList calls the shared lib directly — no HTTP round-trip to the route handler.
+// The route handler at /api/products still exists for external API consumers.
 async function ProductList() {
-  let products: Product[];
+  let products: Awaited<ReturnType<typeof getCachedProducts>>;
   try {
-    products = await getProducts();
+    products = await getCachedProducts();
   } catch {
     products = [];
   }

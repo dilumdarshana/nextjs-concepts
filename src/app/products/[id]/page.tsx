@@ -5,40 +5,20 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { DeleteButtonWithRedirect } from '@/components/delete-button';
 import { AddToCartButton } from '@/components/add-to-cart-button';
-
-const BASE = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : process.env.API_BASE_URL || 'http://localhost:3000';
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-}
-
-// Fetches a single product from the route handler.
-// No `'use cache'` here — the cache lives at the route handler level instead
-// (see src/lib/api.ts:getProductById). This demonstrates that caching can be
-// applied at different layers in the stack.
-async function fetchProduct(id: string): Promise<Product | null> {
-  const res = await fetch(`${BASE}/api/products/${id}`);
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  return res.json();
-}
+import { getProductById } from '@/lib/api';
 
 // generateMetadata runs during page rendering and sets <title> dynamically.
-// Because it fetches data (via fetchProduct), the title reflects the real product name.
+// getProductById has its own `'use cache'` layer (see src/lib/api.ts).
 // If the product doesn't exist, it returns a generic "Not Found" title.
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const product = await fetchProduct(id);
+  const product = await getProductById(id);
   if (!product) return { title: 'Product Not Found' };
   return { title: product.name, description: `${product.name} — $${product.price.toFixed(2)}` };
 }
 
-// ProductDetail is the actual page content. It's wrapped in <Suspense> below,
-// so it streams in after the static shell (loading skeleton) is painted.
+// ProductDetail calls the shared lib directly — no HTTP round-trip to the route handler.
+// getProductById uses `'use cache'` with a 30s stale window (see src/lib/api.ts).
 //
 // DeleteButtonWithRedirect is a client component (see src/components/delete-button.tsx).
 // It lives inside this server component but is only a leaf — it handles its own onClick
@@ -47,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 // If the product doesn't exist, notFound() triggers the closest not-found.tsx
 // (which lives in this same directory).
 async function ProductDetail({ id }: { id: string }) {
-  const product = await fetchProduct(id);
+  const product = await getProductById(id);
 
   if (!product) {
     notFound();
