@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
+import { captureException } from '@sentry/nextjs';
+
 export default function Error({
   error,
   reset,
@@ -7,6 +10,8 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => { captureException(error); }, [error]);
+
   return (
     <div className="text-center py-16 space-y-4">
       <div className="text-5xl">!</div>

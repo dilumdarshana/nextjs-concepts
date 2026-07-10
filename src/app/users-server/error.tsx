@@ -1,9 +1,10 @@
 'use client';
 import { useEffect } from 'react';
+import { captureException } from '@sentry/nextjs';
 
 export default function Error ({ error }: { error: Error}) {
   useEffect(() => {
-    console.log('error on fetching users', error)
+    captureException(error);
   }, [error]);
 
   return (
