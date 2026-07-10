@@ -4,6 +4,8 @@
 
 A demo app exploring Next.js 16 App Router concepts — routing, layouts, server components, client components, route handlers, server actions, authentication with Clerk, data fetching, and testing.
 
+See **[CONCEPTS.md](./CONCEPTS.md)** for a detailed pattern reference with code examples.
+
 ## Tech stack
 
 - Next.js 16 (App Router, Turbopack)
